@@ -1,0 +1,55 @@
+﻿@using Microsoft.AspNetCore.Http;
+@{
+    var userGroupID = Context.Session.GetInt32("UserGroupID");
+    var deparmentID = Context.Session.GetInt32("department_id");
+    var kpiPositionTypeID = Context.Session.GetInt32("KPIPositionTypeID");
+}
+
+@model IEnumerable<IGrouping<string, ManagementCourse.Models.DTO.CourseCatalogDTO>>
+
+<style>
+    .menu-sub > .menu-item > .menu-sub > .menu-item > a::before {
+        left: 36px !important;
+    }
+</style>
+
+<aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme ">
+    <div class="app-brand demo">
+        <a asp-controller="Home" asp-action="Index" class="app-brand-link">
+            <img src="~/assets/img/logo-RTC-2023-1200-banchuan.png" alt="">
+        </a>
+
+        <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
+            <i class="bx bx-chevron-left bx-sm align-middle"></i>
+        </a>
+    </div>
+
+    <div class="menu-inner-shadow"></div>
+
+    <ul class="menu-inner py-1" id="menu_inner" style="max-height: calc(100vh - 90px); overflow-y: auto; overflow-x: hidden;">
+        @foreach (var group in Model)
+        {
+            <li class="menu-item">
+                <a href="javascript:void(0);" class="menu-link menu-toggle" data-group="@group.Key">
+                    <i class="menu-icon tf-icons bx bxs-book-open"></i>
+                    <div>@group.Key</div>
+                </a>
+                <ul class="menu-sub">
+                    @foreach (var item in group)
+                    {
+                        <li class="menu-item">
+                            <a class="menu-link accesskey"
+                               id="menu_link_items_@item.Id"
+                               asp-controller="Home"
+                               asp-action="Index"
+                               asp-route-courseCatalogID="@item.Id"
+                               asp-route-catalogType="@item.CatalogType">
+                                @item.Name
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </li>
+        }
+    </ul>
+</aside>

@@ -1,0 +1,278 @@
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html lang="en"
+      class="light-style customizer-hide"
+      dir="ltr"
+      data-theme="theme-default"
+      data-assets-path="../assets/"
+      data-template="vertical-menu-template-free">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+
+    <title>Đăng ký RTCCourse</title>
+
+    <meta name="description" content="" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="~/assets/img/favicon/icon-logo-RTC-2023.ico" />
+
+    <!-- Fonts -->
+    <link href="~/assets/css/fontcss2.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/assets/vendor/fonts/boxicons.css" />
+
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="~/assets/vendor/css/core.css" class="template-customizer-core-css" />
+    <link rel="stylesheet" href="~/assets/vendor/css/theme-default.css" class="template-customizer-theme-css" />
+    <link rel="stylesheet" href="~/assets/css/demo.css" />
+
+    <!-- Vendors CSS -->
+    <link rel="stylesheet" href="~/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+
+    <!-- Page CSS -->
+    <link rel="stylesheet" href="~/assets/vendor/css/pages/page-auth.css" />
+
+</head>
+
+<body>
+    <!-- Content -->
+    <div class="container-xxl">
+        <div class="authentication-wrapper authentication-basic container-p-y">
+            <div class="authentication-inner">
+                <!-- Register -->
+                <div class="card">
+                    <div class="card-body">
+                        <!-- Logo -->
+                        <div class="app-brand justify-content-center mb-0">
+                            <img src="~/assets/img/logo-RTC-2023-1200-banchuan.png" alt="" width="40%">
+                        </div>
+                        <div class="app-brand justify-content-center">
+                            <span class="app-brand-text demo text-body fw-bolder text-uppercase mt-2">ĐĂNG KÝ</span>
+                        </div>
+                        <!-- /Logo -->
+
+                        <p class="text-danger" id="errorMessage">@ViewBag.Error</p>
+                        <p class="text-success" id="successMessage">@ViewBag.Success</p>
+
+                        <form method="post" action="/Home/Register" class="needs-validation" id="registerForm">
+                            <div class="row align-items-start">
+                                <!-- Cột trái -->
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="fullName" class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                                        <input type="text"
+                                               class="form-control"
+                                               id="fullName"
+                                               name="fullName"
+                                               value="@ViewData["FullName"]"
+                                               placeholder="Nhập họ và tên"
+                                               required />
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="birthDate" class="form-label">Ngày sinh <span class="text-danger">*</span></label>
+                                        <input type="date"
+                                               class="form-control"
+                                               id="birthDate"
+                                               name="birthDate"
+                                               value="@ViewData["BirthDate"]"
+                                               required />
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="Organization" class="form-label">Đơn vị/ tổ chức <span class="text-danger">*</span></label>
+                                        <input type="text"
+                                               class="form-control"
+                                               id="Organization"
+                                               name="Organization"
+                                               value="@ViewData["Organization"]"
+                                               placeholder="Nhập đơn vị/ tổ chức"
+                                               required />
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="password" class="form-label">Mật khẩu <span class="text-danger">*</span></label>
+                                        <input type="password"
+                                               class="form-control"
+                                               id="password"
+                                               name="password"
+                                               placeholder="Nhập mật khẩu (ít nhất 6 ký tự)"
+                                               required
+                                               minlength="6" />
+                                    </div>
+                                </div>
+
+                                <!-- Cột phải -->
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                                        <input type="email"
+                                               class="form-control"
+                                               id="email"
+                                               name="email"
+                                               value="@ViewData["Email"]"
+                                               placeholder="Nhập email"
+                                               required />
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Giới tính <span class="text-danger">*</span></label>
+                                        <div class="d-flex gap-3" style="
+    padding-bottom: 14.2px;
+">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="gender" id="genderMale" value="1" @(ViewData["Gender"]?.ToString() == "1" ? "checked" : "") required>
+                                                <label class="form-check-label" for="genderMale">Nam</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="gender" id="genderFemale" value="0" @(ViewData["Gender"]?.ToString() == "0" ? "checked" : "")>
+                                                <label class="form-check-label" for="genderFemale">Nữ</label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="Position" class="form-label">Vị trí <span class="text-danger">*</span></label>
+                                        <input type="text"
+                                               class="form-control"
+                                               id="Position"
+                                               name="Position"
+                                               value="@ViewData["Position"]"
+                                               placeholder="Nhập vị trí"
+                                               required />
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="confirmPassword" class="form-label">Nhập lại mật khẩu <span class="text-danger">*</span></label>
+                                        <input type="password"
+                                               class="form-control"
+                                               id="confirmPassword"
+                                               name="confirmPassword"
+                                               placeholder="Nhập lại mật khẩu"
+                                               required />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Nguồn giới thiệu - Full width -->
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    Nguồn giới thiệu <span class="text-danger">*</span>
+                                </label>
+
+                                <div class="form-check">
+                                    <input class="form-check-input"
+                                           type="radio"
+                                           id="sourceFacebook"
+                                           name="ReferralSource"
+                                           value="Mạng xã hội(Facebook, Tiktok, Youtube, LinkedIn...)">
+                                    <label class="form-check-label" for="sourceFacebook">
+                                        Mạng xã hội(Facebook, Tiktok, Youtube, LinkedIn...)
+                                    </label>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input"
+                                           type="radio"
+                                           id="sourceGoogle"
+                                           name="ReferralSource"
+                                           value="Google Search, AI Chat (ChatGPT, Gemini, Claude...)">
+                                    <label class="form-check-label" for="sourceGoogle">
+                                        Google Search, AI Chat (ChatGPT, Gemini, Claude...)
+                                    </label>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input"
+                                           type="radio"
+                                           id="sourceFriend"
+                                           name="ReferralSource"
+                                           value="Bạn bè / Người quen giới thiệu">
+                                    <label class="form-check-label" for="sourceFriend">
+                                        Bạn bè / Người quen giới thiệu
+                                    </label>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input"
+                                           type="radio"
+                                           id="sourceWebsite"
+                                           name="ReferralSource"
+                                           value="Website chính thức">
+                                    <label class="form-check-label" for="sourceWebsite">
+                                        Website chính thức
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input"
+                                           type="radio"
+                                           id="sourceTrienLam"
+                                           name="ReferralSource"
+                                           value="Sự kiện, Triển lãm, Ngày hội việc làm...">
+                                    <label class="form-check-label" for="sourceTrienLam">
+                                        Sự kiện, Triển lãm, Ngày hội việc làm...
+                                    </label>
+                                </div>
+
+
+                                <div class="form-check">
+                                    <input class="form-check-input"
+                                           type="radio"
+                                           name="ReferralSource"
+                                           id="sourceOther"
+                                           value="Khác">
+                                    <label class="form-check-label" for="sourceOther">
+                                        Khác
+                                    </label>
+                                </div>
+
+                                <input type="text"
+                                       class="form-control mt-2"
+                                       id="otherSourceText"
+                                       name="OtherReferralSource"
+                                       placeholder="Vui lòng ghi rõ"
+                                       style="display:none;">
+                            </div>
+
+                            <script>
+                                document.getElementById('sourceOther')
+                                    .addEventListener('change', function () {
+                                        const otherInput = document.getElementById('otherSourceText');
+                                        otherInput.style.display = this.checked ? 'block' : 'none';
+
+                                        if (!this.checked) {
+                                            otherInput.value = '';
+                                        }
+                                    });
+
+                                // Khi chọn "Khác", thay giá trị radio bằng text người dùng nhập
+                                document.getElementById('otherSourceText')
+                                    .addEventListener('input', function () {
+                                        if (document.getElementById('sourceOther').checked) {
+                                            document.getElementById('sourceOther').value = this.value || 'Khác';
+                                        }
+                                    });
+                            </script>
+
+                            <div class="mb-3">
+                                <button class="btn btn-primary d-grid w-100" type="submit">Đăng ký</button>
+                            </div>
+                        </form>
+
+                        <p class="text-center mt-3">
+                            Đã có tài khoản? <a href="/Home/Login">Đăng nhập</a>
+                        </p>
+                    </div>
+                </div>
+                <!-- /Register -->
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
