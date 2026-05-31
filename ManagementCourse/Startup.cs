@@ -40,11 +40,13 @@ namespace ManagementCourse
         {
             services.AddCors(options =>
             {
-                options.AddPolicy(name: "DefaultOrigins",
-                                  policy =>
-                                  {
-                                      policy.WithOrigins("http://localhost:26179/");
-                                  });
+                options.AddPolicy("AllowAll", policy =>
+                {
+                    policy
+                        .AllowAnyOrigin()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
             });
 
 
@@ -116,7 +118,7 @@ namespace ManagementCourse
                 RequestPath = new PathString("/FilePDF")
             });
 
-            app.UseCors("DefaultOrigins");
+            app.UseCors("AllowAll");
 
             app.UseEndpoints(endpoints =>
             {
