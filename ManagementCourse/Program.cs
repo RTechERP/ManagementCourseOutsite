@@ -1,5 +1,7 @@
+using ManagementCourse.Common;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
@@ -13,7 +15,9 @@ namespace ManagementCourse
     {
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            var host = CreateHostBuilder(args).Build();
+            Config.Configuration = host.Services.GetService<IConfiguration>();
+            host.Run();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>

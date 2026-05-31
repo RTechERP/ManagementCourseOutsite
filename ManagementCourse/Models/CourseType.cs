@@ -3,19 +3,13 @@ using System.Collections.Generic;
 
 namespace ManagementCourse.Models;
 
-public partial class CourseCatalog
+public partial class CourseType
 {
     public int Id { get; set; }
 
-    public int? Stt { get; set; }
+    public string CourseTypeCode { get; set; }
 
-    public string Code { get; set; }
-
-    public string Name { get; set; }
-
-    public int? DepartmentId { get; set; }
-
-    public bool? DeleteFlag { get; set; }
+    public string CourseTypeName { get; set; }
 
     public string CreatedBy { get; set; }
 
@@ -25,7 +19,9 @@ public partial class CourseCatalog
 
     public DateTime? UpdatedDate { get; set; }
 
-    public int? CatalogType { get; set; }
+    public int? Stt { get; set; }
 
     public bool? IsDeleted { get; set; }
+
+    public bool? IsLearnInTurn { get; set; }
 }
