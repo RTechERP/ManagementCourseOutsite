@@ -26,7 +26,41 @@ namespace ManagementCourse.Reposiory
                                                         new string[] { "@CourseCatalogID", "@FilterText", "@EmployeeID", "@CatalogType", "@IsShowAll" },
                                                         new object[] { courseCatalogID, filterText, employeeID, catalogType, 1});
 
-            return listCourse;
+            var orderedCourses = listCourse
+    .OrderBy(c => c.CatalogType)
+    .ThenByDescending(c => c.CatalogID)
+    .ThenBy(c => c.ID)
+    .ToList();
+
+            var groups = orderedCourses
+                .GroupBy(c => new { c.CatalogType, c.CatalogID })
+                .ToList();
+
+            foreach (var group in groups)
+            {
+                var coursesInCatalog = group.ToList();
+
+                for (int i = 0; i < coursesInCatalog.Count; i++)
+                {
+                    var course = coursesInCatalog[i];
+
+                    if (i == 0)
+                    {
+                        course.Status = 1; // Bài đầu tiên trong danh mục luôn mở
+                        continue;
+                    }
+
+                    var prevCourse = coursesInCatalog[i - 1];
+
+                    bool prevCompleted = prevCourse.NumberLesson >= prevCourse.TotalHistoryLession
+                                         && prevCourse.Evaluate == 1;
+
+                    course.Status = prevCompleted ? 1 : 0;
+                }
+            }
+
+            return orderedCourses;
+            //return listCourse;
         }
     }
 }
