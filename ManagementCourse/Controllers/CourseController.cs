@@ -33,7 +33,7 @@ namespace ManagementCourse.Controllers
             //    kpiPositionTypeID = TextUtils.ToInt(kpiPositionType.Rows[0]["ID"]);
             //}
 
-            var listCourse = courseRepo.ListCourses(id, filterText, employeeID, catalogType);
+            var listCourse = courseRepo.ListCourses(id, filterText, employeeID, catalogType,false);
 
             return Json(listCourse, new System.Text.Json.JsonSerializerOptions());
         }
