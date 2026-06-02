@@ -31,15 +31,17 @@ namespace ManagementCourse.Controllers
         CourseCatalogRepository _courseCatalogRepo;
         CourseRepository _courseRepo;
         LessonRepository _lessonRepo;
+        UsersRepository _usersRepo;
         GenericRepository<CourseExam> _cousrseExam = new GenericRepository<CourseExam>();
         public readonly EmailHelper _emailHelper;
 
-        public HomeController(CourseCatalogRepository courseCatalogRepository, CourseRepository courseRepository, LessonRepository lessonRepository, EmailHelper emailHelper)
+        public HomeController(CourseCatalogRepository courseCatalogRepository, CourseRepository courseRepository, LessonRepository lessonRepository, EmailHelper emailHelper, UsersRepository usersRepository)
         {
             _courseCatalogRepo = courseCatalogRepository;
             _courseRepo = courseRepository;
             _lessonRepo = lessonRepository;
             _emailHelper = emailHelper;
+            _usersRepo = usersRepository;
         }
 
         public IActionResult Index(int courseCatalogID, int catalogType = 1)
@@ -49,7 +51,9 @@ namespace ManagementCourse.Controllers
                 return RedirectToAction("Login", "Home");
             }
             int employeeID = (int)HttpContext.Session.GetInt32("employeeid");
-
+            int userID = (int)HttpContext.Session.GetInt32("userid");
+            User user = _usersRepo.GetByID(userID);
+            bool isAdmin = user.IsAdmin ?? false;
             //int kpiPositionTypeID = 0;
             //DataTable kpiPositionType = LoadDataFromSP.GetDataTableSP("spGetKPIPositionTypeByEmployeeID",
             //            new string[] { "@EmployeeID" }, new object[] { employeeID });
@@ -68,7 +72,7 @@ namespace ManagementCourse.Controllers
             //    listCourseChile = _courseRepo.ListCourses( 0, "", employeeID, catalogType);
             //}
 
-            var listCourseParent = _courseRepo.ListCourses(courseCatalogID, "", employeeID, catalogType);
+            var listCourseParent = _courseRepo.ListCourses(courseCatalogID, "", employeeID, catalogType, isAdmin);
             if (listCourseParent.Count > 0)
             {
                 ViewBag.TitleCourse = courseCatalogID == 0 ? "" : $"danh sách khoá học {listCourseParent.FirstOrDefault().NameCourseCatalog}";

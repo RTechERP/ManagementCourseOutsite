@@ -9,7 +9,7 @@ namespace ManagementCourse.Reposiory
 {
     public class CourseRepository : GenericRepository<Course>
     {
-        public List<CourseDTO> ListCourses( int courseCatalogID, string filterText, int employeeID, int catalogType)
+        public List<CourseDTO> ListCourses( int courseCatalogID, string filterText, int employeeID, int catalogType,bool isAdmin)
         {
             //List<CourseDTO> list = new List<CourseDTO>();
             //DataSet dataSet = LoadDataFromSP.GetDataSetSP("spGetCourse",
@@ -31,6 +31,18 @@ namespace ManagementCourse.Reposiory
     .ThenByDescending(c => c.CatalogID)
     .ThenBy(c => c.ID)
     .ToList();
+
+
+            // Admin mở khóa toàn bộ khóa học
+            if (isAdmin)
+            {
+                foreach (var course in orderedCourses)
+                {
+                    course.Status = 1;
+                }
+
+                return orderedCourses;
+            }
 
             var groups = orderedCourses
                 .GroupBy(c => new { c.CatalogType, c.CatalogID })
