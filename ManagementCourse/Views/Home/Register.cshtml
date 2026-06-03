@@ -59,7 +59,9 @@
                         <p class="text-danger" id="errorMessage">@ViewBag.Error</p>
                         <p class="text-success" id="successMessage">@ViewBag.Success</p>
 
-                        <form method="post" action="/Home/Register" class="needs-validation" id="registerForm">
+                        <form asp-controller="Home"
+                              asp-action="Register"
+                              method="post" class="needs-validation" id="registerForm">
                             <div class="row align-items-start">
                                 <!-- Cột trái -->
                                 <div class="col-md-6">
@@ -265,7 +267,7 @@
                         </form>
 
                         <p class="text-center mt-3">
-                            Đã có tài khoản? <a href="/Home/Login">Đăng nhập</a>
+                            Đã có tài khoản? <a asp-controller="Home" asp-action="Login">Đăng nhập</a>
                         </p>
                     </div>
                 </div>

@@ -66,7 +66,9 @@
                         </div>
                         <!-- /Logo -->
                         <p class="text-success">@TempData["Success"]</p>
-                        <form method="post" action="/Home/Login" class="needs-validation">
+                        <form asp-controller="Home"
+                              asp-action="Login"
+                              method="post" class="needs-validation">
                             <p class="text-danger">@ViewBag.Error</p>
                             <div class="mb-3">
                                 <label for="username" class="form-label">Username</label>
@@ -98,10 +100,12 @@
                         </form>
 
                         <p class="text-center mt-3">
-                            Chưa có tài khoản? <a href="/Home/Register">Đăng ký</a>
+                            Chưa có tài khoản? <a asp-controller="Home" asp-action="Register">Đăng ký</a>
                         </p>
                         <p class="text-center mt-2">
-                            <a href="/Home/ChangePassword">Đổi mật khẩu?</a>
+                            <a asp-controller="Home"
+                               asp-action="ChangePassword"
+                               method="post">Đổi mật khẩu?</a>
                         </p>
 
                     </div>
