@@ -27,7 +27,7 @@ function CheckHistoryLess(event, id) {
     }).then((result) => {
         if (result.isConfirmed) {
             $.ajax({
-                url: '/Lesson/CheckHistoryLesson',
+                url: '@Url.Action("CheckHistoryLesson", "Lesson")',
                 type: 'POST',
                 dataType: 'json',
                 data: {
@@ -64,7 +64,7 @@ function CheckHistoryLess(event, id) {
 //Get danh sách file đính kèm
 function GetCourseFile(lessonid) {
     $.ajax({
-        url: '/Lesson/GetCourseFile',
+        url: '@Url.Action("GetCourseFile", "Lesson")',
         type: 'GET',
         dataType: 'json',
         contentType: 'application/json',
@@ -126,7 +126,7 @@ function onClickLesson(event, id) {
     $('#lesson_content_header').html(htmlContentHeader);
     $('#lesson_content_body').html(htmlContentBody);
     $.ajax({
-        url: '/Lesson/BuildPdfUrl',
+        url: '@Url.Action("BuildPdfUrl", "Lesson")',
         type: 'GET',
         dataType: 'text',
         data: {
@@ -153,7 +153,7 @@ function onClickLesson(event, id) {
 //Get danh sách khoá học
 function GetAllLesson() {
     $.ajax({
-        url: '/Lesson/GetCourseLesson',
+        url: '@Url.Action("GetCourseLesson", "Lesson")',
         type: 'GET',
         dataType: 'json',
         contentType: 'application/json',
@@ -234,18 +234,35 @@ function GetAllLesson() {
             });
 
             // Also update dropdown exam links
+            //$.each(data, (idx, cat) => {
+            //    $.each(cat.lstExam, (key, exam) => {
+            //        if (exam.ExamType == 1) {
+            //            $(`a[href="/CourseExamResult/LessonExamQuiz?lessonID=${exam.LessonId}"]`).replaceWith(`<button class="dropdown-item" onclick="startExam(0, ${exam.LessonId}, 1)">Trắc nghiệm</button>`);
+            //        } else if (exam.ExamType == 2) {
+            //            $(`a[href="/CourseExamResult/Practice?lessonID=${exam.LessonId}"]`).replaceWith(`<button class="dropdown-item" onclick="startExam(0, ${exam.LessonId}, 2)">Thực hành</button>`);
+            //        } else if (exam.ExamType == 3) {
+            //            $(`a[href="/CourseExamResult/Exercise?lessonID=${exam.LessonId}"]`).replaceWith(`<button class="dropdown-item" onclick="startExam(0, ${exam.LessonId}, 3)">Bài tập</button>`);
+            //        }
+            //    });
+            //});
             $.each(data, (idx, cat) => {
                 $.each(cat.lstExam, (key, exam) => {
+
                     if (exam.ExamType == 1) {
-                        $(`a[href="/CourseExamResult/LessonExamQuiz?lessonID=${exam.LessonId}"]`).replaceWith(`<button class="dropdown-item" onclick="startExam(0, ${exam.LessonId}, 1)">Trắc nghiệm</button>`);
-                    } else if (exam.ExamType == 2) {
-                        $(`a[href="/CourseExamResult/Practice?lessonID=${exam.LessonId}"]`).replaceWith(`<button class="dropdown-item" onclick="startExam(0, ${exam.LessonId}, 2)">Thực hành</button>`);
-                    } else if (exam.ExamType == 3) {
-                        $(`a[href="/CourseExamResult/Exercise?lessonID=${exam.LessonId}"]`).replaceWith(`<button class="dropdown-item" onclick="startExam(0, ${exam.LessonId}, 3)">Bài tập</button>`);
+                        $(`a[href='@Url.Action("LessonExamQuiz", "CourseExamResult")?lessonID=${exam.LessonId}']`)
+                            .replaceWith(`<button class="dropdown-item" onclick="startExam(0, ${exam.LessonId}, 1)">Trắc nghiệm</button>`);
                     }
+                    else if (exam.ExamType == 2) {
+                        $(`a[href='@Url.Action("Practice", "CourseExamResult")?lessonID=${exam.LessonId}']`)
+                            .replaceWith(`<button class="dropdown-item" onclick="startExam(0, ${exam.LessonId}, 2)">Thực hành</button>`);
+                    }
+                    else if (exam.ExamType == 3) {
+                        $(`a[href='@Url.Action("Exercise", "CourseExamResult")?lessonID=${exam.LessonId}']`)
+                            .replaceWith(`<button class="dropdown-item" onclick="startExam(0, ${exam.LessonId}, 3)">Bài tập</button>`);
+                    }
+
                 });
             });
-
             html += `<li class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-0">
                             <ul class="nav nav-tabs nav-fill w-100" role="tablist">
                                 ${htmlExam}
@@ -266,7 +283,7 @@ function GetAllLesson() {
 function GetCourseExam() {
     return new Promise((resolve, reject) => {
         $.ajax({
-            url: '/Lesson/GetCourseExam',
+            url: '@Url.Action("GetCourseExam", "Lesson")',
             type: 'GET',
             dataType: 'json',
             contentType: 'application/json',
@@ -287,11 +304,17 @@ function GetCourseExam() {
 // Validate exam and redirect - không reload khi validation fail
 function startExam(courseId, lessonId, examType) {
     // Chọn API tương ứng với loại exam
-    var apiUrl = '/CourseExamResult/ValidateExam';
+    //var apiUrl = '/CourseExamResult/ValidateExam';
+    //if (examType === 2) {
+    //    apiUrl = '/CourseExamResult/ValidatePractice';
+    //} else if (examType === 3) {
+    //    apiUrl = '/CourseExamResult/ValidateExercise';
+    //}
+    var apiUrl = '@Url.Action("ValidateExam", "CourseExamResult")';
     if (examType === 2) {
-        apiUrl = '/CourseExamResult/ValidatePractice';
+        apiUrl = '@Url.Action("ValidatePractice", "CourseExamResult")';
     } else if (examType === 3) {
-        apiUrl = '/CourseExamResult/ValidateExercise';
+        apiUrl = '@Url.Action("ValidateExercise", "CourseExamResult")';
     }
 
     $.ajax({
@@ -303,16 +326,31 @@ function startExam(courseId, lessonId, examType) {
         success: function (result) {
             if (result.success) {
                 // Validation OK - redirect sang trang thi
+                //if (examType === 1) {
+                //    if (lessonId > 0) {
+                //        window.location.href = `/CourseExamResult/LessonExamQuiz?lessonID=${lessonId}`;
+                //    } else {
+                //        window.location.href = `/CourseExamResult/Index?courseId=${courseId}`;
+                //    }
+                //} else if (examType === 2) {
+                //    window.location.href = `/CourseExamResult/Practice?courseId=${courseId}&lessonID=${lessonId}`;
+                //} else if (examType === 3) {
+                //    window.location.href = `/CourseExamResult/Exercise?courseId=${courseId}&lessonID=${lessonId}`;
+                //}
                 if (examType === 1) {
                     if (lessonId > 0) {
-                        window.location.href = `/CourseExamResult/LessonExamQuiz?lessonID=${lessonId}`;
+                        window.location.href = '@Url.Action("LessonExamQuiz", "CourseExamResult")'
+                            + `?lessonID=${lessonId}`;
                     } else {
-                        window.location.href = `/CourseExamResult/Index?courseId=${courseId}`;
+                        window.location.href = '@Url.Action("Index", "CourseExamResult")'
+                            + `?courseId=${courseId}`;
                     }
                 } else if (examType === 2) {
-                    window.location.href = `/CourseExamResult/Practice?courseId=${courseId}&lessonID=${lessonId}`;
+                    window.location.href = '@Url.Action("Practice", "CourseExamResult")'
+                        + `?courseId=${courseId}&lessonID=${lessonId}`;
                 } else if (examType === 3) {
-                    window.location.href = `/CourseExamResult/Exercise?courseId=${courseId}&lessonID=${lessonId}`;
+                    window.location.href = '@Url.Action("Exercise", "CourseExamResult")'
+                        + `?courseId=${courseId}&lessonID=${lessonId}`;
                 }
             } else {
                 // Validation fail - hiện popup lỗi, KHÔNG reload
