@@ -1,4 +1,4 @@
-﻿
+
 using ManagementCourse.Common;
 using ManagementCourse.Models;
 using ManagementCourse.Reposiory;
@@ -32,16 +32,18 @@ namespace ManagementCourse.Controllers
         CourseRepository _courseRepo;
         LessonRepository _lessonRepo;
         UsersRepository _usersRepo;
+        PasswordResetTokenRepository _passwordResetTokenRepo;
         GenericRepository<CourseExam> _cousrseExam = new GenericRepository<CourseExam>();
         public readonly EmailHelper _emailHelper;
 
-        public HomeController(CourseCatalogRepository courseCatalogRepository, CourseRepository courseRepository, LessonRepository lessonRepository, EmailHelper emailHelper, UsersRepository usersRepository)
+        public HomeController(CourseCatalogRepository courseCatalogRepository, CourseRepository courseRepository, LessonRepository lessonRepository, EmailHelper emailHelper, UsersRepository usersRepository, PasswordResetTokenRepository passwordResetTokenRepository)
         {
             _courseCatalogRepo = courseCatalogRepository;
             _courseRepo = courseRepository;
             _lessonRepo = lessonRepository;
             _emailHelper = emailHelper;
             _usersRepo = usersRepository;
+            _passwordResetTokenRepo = passwordResetTokenRepository;
         }
 
         public IActionResult Index(int courseCatalogID, int catalogType = 1)
@@ -417,6 +419,279 @@ namespace ManagementCourse.Controllers
             }
             return RedirectToAction("Login", "Home");
         }
+        #region Forgot Password
+
+        // Bước 1 GET: Hiển thị form nhập email
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        // Bước 1 POST: Xác thực email, tạo OTP, gửi mail
+        [HttpPost]
+        public async Task<IActionResult> ForgotPassword(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                ViewBag.Error = "Vui lòng nhập địa chỉ email.";
+                return View();
+            }
+
+            try
+            {
+                // Tìm user theo EmailCom trước, fallback về Email
+                var user = _usersRepo.GetAll(x =>
+                    (!string.IsNullOrEmpty(x.EmailCom) && x.EmailCom.ToLower() == email.ToLower()) ||
+                    (!string.IsNullOrEmpty(x.Email) && x.Email.ToLower() == email.ToLower())
+                ).FirstOrDefault();
+
+                if (user == null)
+                {
+                    ViewBag.Error = "Không tìm thấy tài khoản với email này.";
+                    return View();
+                }
+
+                // Xác định email gửi đến
+                string targetEmail = !string.IsNullOrEmpty(user.EmailCom) ? user.EmailCom : user.Email;
+
+                // Vô hiệu hóa các token cũ
+                await _passwordResetTokenRepo.InvalidateOldTokens(user.Id);
+
+                // Tạo OTP 6 chữ số mới
+                string rawOtp = new Random().Next(100000, 1000000).ToString();
+                var token = new Models.PasswordResetToken
+                {
+                    UserId = user.Id,
+                    Token = Common.MaHoaMD5.Hash(rawOtp),
+                    ExpiredAt = DateTime.Now.AddMinutes(10),
+                    IsUsed = false,
+                    CreatedDate = DateTime.Now,
+                    CreatedBy = user.LoginName,
+                    UpdatedDate = DateTime.Now,
+                    UpdatedBy = user.LoginName
+                };
+                await _passwordResetTokenRepo.CreateAsync(token);
+
+                // Gửi email OTP
+                await _emailHelper.SendOtpAsync(targetEmail, user.FullName ?? user.LoginName, rawOtp);
+
+                // Lưu email vào Session (bền vững) và TempData (cho redirect)
+                HttpContext.Session.SetString("FP_Email", targetEmail);
+                TempData["FP_Email"] = targetEmail;
+                TempData["FP_MaskedEmail"] = MaskEmail(targetEmail);
+
+                return RedirectToAction("VerifyOtp");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = "Đã xảy ra lỗi: " + ex.Message;
+                return View();
+            }
+        }
+
+        // Bước 2 GET: Hiển thị form nhập OTP
+        [HttpGet]
+        public IActionResult VerifyOtp()
+        {
+            // Fallback: đọc từ Session nếu TempData hết hạn (ví dụ sau ResendOtp AJAX)
+            if (TempData["FP_Email"] == null)
+            {
+                string sessionEmail = HttpContext.Session.GetString("FP_Email");
+                if (string.IsNullOrEmpty(sessionEmail))
+                    return RedirectToAction("ForgotPassword");
+                TempData["FP_Email"] = sessionEmail;
+                TempData["FP_MaskedEmail"] = MaskEmail(sessionEmail);
+            }
+
+            ViewBag.MaskedEmail = TempData["FP_MaskedEmail"]?.ToString();
+            TempData.Keep("FP_Email");
+            TempData.Keep("FP_MaskedEmail");
+            return View();
+        }
+
+        // Gửi lại OTP qua AJAX (không reload trang)
+        [HttpPost]
+        public async Task<IActionResult> ResendOtp()
+        {
+            string email = HttpContext.Session.GetString("FP_Email");
+            if (string.IsNullOrEmpty(email))
+                return Json(new { success = false, message = "Phiên đã hết hạn. Vui lòng nhập lại email." });
+
+            try
+            {
+                var user = _usersRepo.GetAll(x =>
+                    (!string.IsNullOrEmpty(x.EmailCom) && x.EmailCom.ToLower() == email.ToLower()) ||
+                    (!string.IsNullOrEmpty(x.Email)    && x.Email.ToLower()    == email.ToLower())
+                ).FirstOrDefault();
+
+                if (user == null)
+                    return Json(new { success = false, message = "Không tìm thấy tài khoản." });
+
+                // Vô hiệu hóa token cũ
+                await _passwordResetTokenRepo.InvalidateOldTokens(user.Id);
+
+                // Tạo OTP mới
+                string rawOtp = new Random().Next(100000, 1000000).ToString();
+                await _passwordResetTokenRepo.CreateAsync(new Models.PasswordResetToken
+                {
+                    UserId      = user.Id,
+                    Token       = Common.MaHoaMD5.Hash(rawOtp),
+                    ExpiredAt   = DateTime.Now.AddMinutes(10),
+                    IsUsed      = false,
+                    CreatedDate = DateTime.Now,
+                    CreatedBy   = user.LoginName,
+                    UpdatedDate = DateTime.Now,
+                    UpdatedBy   = user.LoginName
+                });
+
+                // Gửi mail
+                await _emailHelper.SendOtpAsync(email, user.FullName ?? user.LoginName, rawOtp);
+
+                return Json(new { success = true, message = "Mã OTP mới đã được gửi đến email của bạn." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Gửi lại thất bại: " + ex.Message });
+            }
+        }
+
+        // Bước 2 POST: Xác thực OTP
+        [HttpPost]
+        public IActionResult VerifyOtp(string otp)
+        {
+            string email = TempData["FP_Email"]?.ToString();
+            if (string.IsNullOrEmpty(email))
+                return RedirectToAction("ForgotPassword");
+
+            if (string.IsNullOrWhiteSpace(otp) || otp.Length != 6)
+            {
+                ViewBag.Error = "Vui lòng nhập đủ 6 chữ số OTP.";
+                ViewBag.MaskedEmail = MaskEmail(email);
+                TempData["FP_Email"] = email;
+                TempData["FP_MaskedEmail"] = MaskEmail(email);
+                TempData.Keep("FP_Email");
+                TempData.Keep("FP_MaskedEmail");
+                return View();
+            }
+
+            try
+            {
+                string hashedOtp = Common.MaHoaMD5.Hash(otp);
+                var tokenRecord = _passwordResetTokenRepo.GetValidToken(hashedOtp);
+
+                if (tokenRecord == null)
+                {
+                    ViewBag.Error = "Mã OTP không đúng hoặc đã hết hạn. Vui lòng thử lại.";
+                    ViewBag.MaskedEmail = MaskEmail(email);
+                    TempData["FP_Email"] = email;
+                    TempData["FP_MaskedEmail"] = MaskEmail(email);
+                    TempData.Keep("FP_Email");
+                    TempData.Keep("FP_MaskedEmail");
+                    return View();
+                }
+
+                // Lưu token hash để dùng ở bước 3
+                TempData["FP_TokenHash"] = hashedOtp;
+                return RedirectToAction("ResetPassword");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = "Đã xảy ra lỗi: " + ex.Message;
+                ViewBag.MaskedEmail = MaskEmail(email);
+                TempData["FP_Email"] = email;
+                TempData.Keep("FP_Email");
+                return View();
+            }
+        }
+
+        // Bước 3 GET: Hiển thị form đặt mật khẩu mới
+        [HttpGet]
+        public IActionResult ResetPassword()
+        {
+            if (TempData["FP_TokenHash"] == null)
+                return RedirectToAction("ForgotPassword");
+
+            ViewBag.TokenHash = TempData["FP_TokenHash"]?.ToString();
+            TempData.Keep("FP_TokenHash");
+            return View();
+        }
+
+        // Bước 3 POST: Đặt lại mật khẩu
+        [HttpPost]
+        public async Task<IActionResult> ResetPassword(string tokenHash, string newPassword, string confirmPassword)
+        {
+            if (string.IsNullOrEmpty(tokenHash))
+                return RedirectToAction("ForgotPassword");
+
+            if (string.IsNullOrEmpty(newPassword) || string.IsNullOrEmpty(confirmPassword))
+            {
+                ViewBag.Error = "Vui lòng nhập đầy đủ mật khẩu.";
+                ViewBag.TokenHash = tokenHash;
+                return View();
+            }
+
+            if (newPassword.Length < 6)
+            {
+                ViewBag.Error = "Mật khẩu phải có ít nhất 6 ký tự.";
+                ViewBag.TokenHash = tokenHash;
+                return View();
+            }
+
+            if (newPassword != confirmPassword)
+            {
+                ViewBag.Error = "Mật khẩu xác nhận không khớp.";
+                ViewBag.TokenHash = tokenHash;
+                return View();
+            }
+
+            try
+            {
+                var tokenRecord = _passwordResetTokenRepo.GetValidToken(tokenHash);
+                if (tokenRecord == null)
+                {
+                    ViewBag.Error = "Phiên đặt lại mật khẩu không hợp lệ hoặc đã hết hạn. Vui lòng thực hiện lại.";
+                    ViewBag.TokenHash = tokenHash;
+                    return View();
+                }
+
+                var user = _usersRepo.GetByID(tokenRecord.UserId ?? 0);
+                if (user == null)
+                    return RedirectToAction("ForgotPassword");
+
+                // Cập nhật mật khẩu
+                user.PasswordHash = Common.MaHoaMD5.EncryptPassword(newPassword);
+                user.UpdatedDate = DateTime.Now;
+                await _usersRepo.UpdateAsync(user);
+
+                // Đánh dấu token đã dùng
+                tokenRecord.IsUsed = true;
+                tokenRecord.UpdatedDate = DateTime.Now;
+                await _passwordResetTokenRepo.UpdateAsync(tokenRecord);
+
+                TempData["Success"] = "Đặt lại mật khẩu thành công! Vui lòng đăng nhập.";
+                return RedirectToAction("Login");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = "Đã xảy ra lỗi: " + ex.Message;
+                ViewBag.TokenHash = tokenHash;
+                return View();
+            }
+        }
+
+        private string MaskEmail(string email)
+        {
+            if (string.IsNullOrEmpty(email)) return "";
+            int at = email.IndexOf('@');
+            if (at <= 1) return email;
+            string name = email.Substring(0, at);
+            string domain = email.Substring(at);
+            string masked = name[0] + new string('*', Math.Max(name.Length - 2, 1)) + name[name.Length - 1];
+            return masked + domain;
+        }
+
+        #endregion
 
 
     }

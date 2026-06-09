@@ -73,6 +73,7 @@ namespace ManagementCourse
             services.AddScoped<GenericRepository<CourseLessonHistory>>();
             services.AddScoped<GenericRepository<ConfigSystemRepository>>();
             services.AddScoped<UsersRepository>();
+            services.AddScoped<PasswordResetTokenRepository>();
             services.AddScoped<EmailHelper>();
             services.AddScoped<INotyfService, NotyfService>();
             services.AddNotyf(config =>

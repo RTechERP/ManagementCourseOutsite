@@ -1,4 +1,4 @@
-﻿using MailKit.Net.Smtp;
+using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
@@ -215,6 +215,66 @@ namespace ManagementCourse.Common
             catch (Exception ex)
             {
 
+                throw new Exception(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Gửi mã OTP đặt lại mật khẩu tới người dùng
+        /// </summary>
+        public async Task SendOtpAsync(string toEmail, string fullName, string otp)
+        {
+            try
+            {
+                var email = new MimeMessage();
+                email.From.Add(new MailboxAddress(_smtp.DisplayName, _smtp.Mail));
+                email.To.Add(MailboxAddress.Parse(toEmail));
+                email.Subject = "[Lưu ý] Mã xác thực đặt lại mật khẩu";
+
+                var builder = new BodyBuilder();
+                builder.HtmlBody = $@"
+<div style='font-family: ""Segoe UI"", Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; padding: 40px 20px;'>
+    <div style='max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.08);'>
+        <div style='background: linear-gradient(135deg, #1677ff 0%, #0958d9 100%); padding: 30px; text-align: center;'>
+            <h2 style='color: #ffffff; margin: 0; font-size: 22px; font-weight: 700;'>Đặt lại mật khẩu</h2>
+            <p style='color: rgba(255,255,255,0.85); margin: 6px 0 0; font-size: 14px;'>RTC – Hệ thống đào tạo trực tuyến</p>
+        </div>
+        <div style='padding: 40px 30px; color: #333333;'>
+            <p style='margin-top: 0; font-size: 16px;'>Chào <b>{fullName}</b>,</p>
+            <p style='font-size: 15px; line-height: 1.6; color: #555555;'>
+                Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn.<br/>
+                Vui lòng sử dụng mã xác thực dưới đây để tiếp tục:
+            </p>
+
+            <div style='background: #f8f9fa; border: 2px dashed #1677ff; border-radius: 12px; margin: 30px 0; padding: 30px; text-align: center;'>
+                <span style='font-size: 40px; font-weight: 800; color: #1677ff; letter-spacing: 10px; display: block;'>{otp}</span>
+                <p style='margin-top: 10px; color: #888888; font-size: 13px;'>⏱ Mã OTP có hiệu lực trong <b>10 phút</b></p>
+            </div>
+
+            <div style='background-color: #fff7e6; border-left: 4px solid #fa8c16; border-radius: 6px; padding: 12px 16px; margin-bottom: 20px;'>
+                <p style='margin: 0; font-size: 13px; color: #d46b08;'>
+                    ⚠️ Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này. Mật khẩu của bạn sẽ không bị thay đổi.
+                </p>
+            </div>
+        </div>
+        <div style='background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eeeeee;'>
+            <p style='margin: 0; font-size: 12px; color: #999999;'>© {DateTime.Now.Year} RTC. Email này được gửi tự động, vui lòng không trả lời.</p>
+        </div>
+    </div>
+</div>";
+
+                email.Body = builder.ToMessageBody();
+
+                using (var smtpClient = new SmtpClient())
+                {
+                    await smtpClient.ConnectAsync(_smtp.Host, _smtp.Port, SecureSocketOptions.StartTls);
+                    await smtpClient.AuthenticateAsync(_smtp.Mail, _smtp.Password);
+                    await smtpClient.SendAsync(email);
+                    await smtpClient.DisconnectAsync(true);
+                }
+            }
+            catch (Exception ex)
+            {
                 throw new Exception(ex.Message);
             }
         }

@@ -1,4 +1,4 @@
-﻿@{
+@{
     Layout = null;
 }
 
@@ -71,12 +71,12 @@
                               method="post" class="needs-validation">
                             <p class="text-danger">@ViewBag.Error</p>
                             <div class="mb-3">
-                                <label for="username" class="form-label">Username</label>
+                                <label for="username" class="form-label">Email</label>
                                 <input type="text"
                                        class="form-control"
                                        id="username"
                                        name="username"
-                                       placeholder=" username"
+                                       placeholder="example@email.com"
                                        autofocus />
                             </div>
                             <div class="mb-3 form-password-toggle">
@@ -106,6 +106,10 @@
                             <a asp-controller="Home"
                                asp-action="ChangePassword"
                                method="post">Đổi mật khẩu?</a>
+                            &nbsp;|&nbsp;
+                            <a asp-controller="Home"
+                               asp-action="ForgotPassword"
+                               method="post" >Quên mật khẩu?</a>
                         </p>
 
                     </div>
