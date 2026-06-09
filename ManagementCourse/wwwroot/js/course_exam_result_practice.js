@@ -11,7 +11,7 @@ $(document).ready(function () {
 
 function GetHistoryPractice() {
     $.ajax({
-        url: '@Url.Action("GetHistoryResultPractice", "CourseExamPractice")',
+        url: "/CourseExamPractice/GetHistoryResultPractice",
         type: "GET",
         dataType: 'json',
         contentType: 'application/json',
@@ -40,7 +40,7 @@ function GetHistoryPractice() {
 
 function GetResultPractice(id) {
     $.ajax({
-        url: '@Url.Action("GetResultPractice", "CourseExamPractice")',
+        url: "/CourseExamPractice/GetResultPractice",
         type: "GET",
         dataType: 'json',
         contentType: 'application/json',
@@ -67,7 +67,7 @@ function GetResultPractice(id) {
 
 function GetQuestion() {
     $.ajax({
-        url: '@Url.Action("GetQuesstion", "CourseExamPractice")',
+        url: "/CourseExamPractice/GetQuesstion",
         type: "GET",
         dataType: 'json',
         contentType: 'application/json',
@@ -75,14 +75,14 @@ function GetQuestion() {
         success: function (response) {
             var html = '';
 
-            var data = 
-            $.each(response, function (i, item) {
-                listIdQuestion.push(item.id);
-                html += `<tr>
+            var data =
+                $.each(response, function (i, item) {
+                    listIdQuestion.push(item.id);
+                    html += `<tr>
                     <td class="p-1 text-center align-middle">${item.stt}</td>
-                    <td class="p-1 "><a href='@Url.Action("QuestionDetails", "CourseExamResult")?questionId=${item.id}&courseId=${courseId}' target="_blank" class="link-color">${item.questionText}</a></td>
+                    <td class="p-1 "><a href="/CourseExamResult/QuestionDetails?questionId=${item.id}&courseId=${courseId}" target="_blank" class="link-color">${item.questionText}</a></td>
                 </tr>`;
-            })
+                })
             $('#tbody_exam_result').html(html);
         },
         error: function (error) {
@@ -126,7 +126,7 @@ function DoExam() {
     //        var dateCreate = moment(result.createdDate).isValid() ? moment(result.createdDate).format("DD/MM/YYYY HH:mm") : '';
     //        $("#time-exam").text(dateCreate);
     //        resultExamId = result.id;
-            $("#modal_exam_practice_test").modal('show');
+    $("#modal_exam_practice_test").modal('show');
     //    },
     //    error: function (error) {
     //        alert(error.responseText);
@@ -143,7 +143,7 @@ function onSubmit() {
     }).then((result) => {
         if (result.isConfirmed) {
             $("#modal_exam_practice_test").modal('hide');
-            
+
             onSave();
             GetHistoryPractice();
         }
@@ -152,14 +152,14 @@ function onSubmit() {
 }
 
 function onSave() {
-    
+
     let obj = {
         Id: 0,
         CourseExamId: parseInt(courseExamId),
         Note: ""
     };
     $.ajax({
-        url: '@Url.Action("CreatePracticeResult", "CourseExamPractice")',
+        url: "/CourseExamPractice/CreatePracticeResult",
         type: "POST",
         dataType: 'json',
         contentType: 'application/json',
@@ -175,7 +175,7 @@ function onSave() {
                 Note: ""
             };
             $.ajax({
-                url: '@Url.Action("ConfirmPractice", "CourseExamPractice")',
+                url: "/CourseExamPractice/ConfirmPractice",
                 type: "POST",
                 dataType: 'json',
                 contentType: 'application/json',
@@ -200,7 +200,7 @@ function onSave() {
 
                         console.log(arrData);
                         $.ajax({
-                            url: '@Url.Action("CreateListExamValuate", "CourseExamPractice")',
+                            url: "/CourseExamPractice/CreateListExamValuate",
                             type: "POST",
                             dataType: 'json',
                             contentType: 'application/json',
@@ -224,6 +224,6 @@ function onSave() {
             alert(error.responseText);
         }
     });
-   
+
 }
 

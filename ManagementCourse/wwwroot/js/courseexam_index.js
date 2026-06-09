@@ -16,7 +16,7 @@ $(document).ready(function () {
     var resultID = window.resultID;
 
     $.ajax({
-        url: '@Url.Action("CheckExamCompletion", "CourseExam")',
+        url: "/CourseExam/CheckExamCompletion",
         type: "GET",
         data: { resultID: resultID },
         success: function (response) {
@@ -51,7 +51,7 @@ $(document).ready(function () {
     //Lấy ra câu hỏi
     function loadQuestions() {
         $.ajax({
-            url: '@Url.Action("GetQuestions", "CourseExam")',
+            url: '/CourseExam/GetQuestions',
             type: 'GET',
             data: { courseExamId: courseExamId },
             success: function (response) {
@@ -193,7 +193,7 @@ $(document).ready(function () {
 
         $.ajax({
             type: "POST",
-            url: '@Url.Action("GetQuestionAnswers", "CourseExam")',
+            url: "/CourseExam/GetQuestionAnswers",
             data: { questionId: questionId, courseExamResultId: resultID },
             success: function (previousAnswers) {
                 if (previousAnswers !== null) {
@@ -224,7 +224,7 @@ $(document).ready(function () {
 
         $.ajax({
             type: "POST",
-            url: '@Url.Action("SaveQuestionAnswers", "CourseExam")',
+            url: "/CourseExam/SaveQuestionAnswers",
             data: JSON.stringify(answerData),
             contentType: "application/json",
             success: function (response) { },
@@ -255,7 +255,7 @@ $(document).ready(function () {
             saveSelectedAnswers(currentQuestionIndex);
             $.ajax({
                 type: "POST",
-                url: '@Url.Action("SubmitExam", "CourseExam")',
+                url: "/CourseExam/SubmitExam",
                 data: { resultID: resultID },
                 success: function (response) {
                     // Update the exam result based on the response
@@ -289,7 +289,7 @@ $(document).ready(function () {
     $(document).on('click', '#btn-restart-exam', function () {
         $.ajax({
             type: "POST",
-            url: '@Url.Action("RetakeExam", "CourseExam")',
+            url: "/CourseExam/RetakeExam",
             data: { resultID: resultID },
             success: function (response) {
                 // Reload the page to start the exam again
@@ -318,7 +318,7 @@ function CheckHistoryLess(event, id) {
 
 
             $.ajax({
-                url: '@Url.Action("CheckHistoryLesson", "Lesson")',
+                url: '/Lesson/CheckHistoryLesson',
                 type: 'POST',
                 dataType: 'json',
                 data: {

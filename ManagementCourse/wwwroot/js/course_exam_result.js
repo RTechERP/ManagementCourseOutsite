@@ -10,7 +10,7 @@ $(document).ready(function () {
 function GetExamResult(courseExamID) {
 
     $.ajax({
-        url: '@Url.Action("GetExamResult", "CourseExamResult")',
+        url: "/CourseExamResult/GetExamResult",
         type: "GET",
         dataType: 'json',
         contentType: 'application/json',
@@ -42,7 +42,7 @@ function GetExamResult(courseExamID) {
 
 function GetQuestionAnswerRight() {
     $.ajax({
-        url: '@Url.Action("GetQuestionAnswerRight", "CourseExamResult")',
+        url: "/CourseExamResult/GetQuestionAnswerRight",
         type: "GET",
         dataType: 'json',
         contentType: 'application/json',
@@ -75,7 +75,7 @@ function onStart(status, examResultId) {
 
     if (status == 1) {
         $.ajax({
-            url: '@Url.Action("CreateExamResult", "CourseExamResult")',
+            url: "/CourseExamResult/CreateExamResult",
             type: "POST",
             dataType: 'json',
             contentType: 'application/json',
@@ -109,7 +109,7 @@ function onStart(status, examResultId) {
 //Get danh sách câu hỏi
 function GetExamQuestion(courseId, courseExamResultID) {
     $.ajax({
-        url: '@Url.Action("GetExamQuestion", "CourseExamResult")',
+        url: "/CourseExamResult/GetExamQuestion",
         type: "GET",
         dataType: 'json',
         contentType: 'application/json',
@@ -198,7 +198,7 @@ function AddResultDetail(isSubmit, isNext, isSave) {
         }
     })
     $.ajax({
-        url: '@Url.Action("CreateExamResultDetail", "CourseExamResult")',
+        url: "/CourseExamResult/CreateExamResultDetail",
         type: "POST",
         dataType: 'json',
         contentType: 'application/json',
@@ -332,7 +332,7 @@ function addContentQuestion(item) {
     $('#exam_question_content').html(html);
     $('#exam_content_answer').html(htmlAnswer);
     $.ajax({
-        url: '@Url.Action("getUrlImageByKey", "CourseExamResult")',
+        url: '/CourseExamResult/getUrlImageByKey',
         type: 'GET',
         dataType: 'text',
         data: {

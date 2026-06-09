@@ -43,7 +43,7 @@ function GetAllCourse(keyword) {
     var html = '';
     var title = '';
     $.ajax({
-        url: '@Url.Action("GetListCourse", "Course")',
+        url: '/Course/GetListCourse',
         type: 'GET',
         dataType: 'json',
         contentType: 'application/json',
@@ -65,7 +65,7 @@ function GetAllCourse(keyword) {
                                     <div class="col-8">
                                         <p class="m-0 fw-bold ${classStatus}">${item.DeleteFlagText}</p>
                                         <h5 class="card-title m-0 text-uppercase fw-bold">
-                                           <a href="@Url.Action("Index", "Lesson", new { courseId = item.ID, lessionId = 0 })" class="px-0">${item.NameCourse}</a>
+                                            <a href="/Lesson/Index?courseId=${item.ID}&lessionId=0" class="px-0">${item.NameCourse}</a>
                                         </h5>
                                         <p class="m-0 text-dark">${item.Instructor}</p>
                                     </div>
@@ -88,10 +88,7 @@ function GetAllCourse(keyword) {
                                     </div>
                                 </div>
 
-                                <a href="@Url.Action("Index", "Lesson", new { courseId = item.ID, lessionId = 0 })"
-   class="btn btn-primary btn-sm">
-    Xem chi tiết
-</a>
+                                <a href="/Lesson/Index?courseId=${item.ID}&lessionId=0" class="btn btn-primary btn-sm">Xem chi tiết</a>
                             </div>
                         </div>`;
 

@@ -11,7 +11,7 @@ $(document).ready(function () {
 
 function GetHistoryPractice() {
     $.ajax({
-        url: '@Url.Action("GetHistoryResultPractice", "CourseExamPractice")',
+        url: "/CourseExamPractice/GetHistoryResultPractice",
         type: "GET",
         dataType: 'json',
         contentType: 'application/json',
@@ -40,7 +40,7 @@ function GetHistoryPractice() {
 
 function GetResultPractice(id) {
     $.ajax({
-        url: '@Url.Action("GetResultPractice", "CourseExamPractice")',
+        url: "/CourseExamPractice/GetResultPractice",
         type: "GET",
         dataType: 'json',
         contentType: 'application/json',
@@ -67,7 +67,7 @@ function GetResultPractice(id) {
 
 function GetQuestion() {
     $.ajax({
-        url: '@Url.Action("GetQuesstion", "CourseExamPractice")',
+        url: "/CourseExamPractice/GetQuesstion",
         type: "GET",
         dataType: 'json',
         contentType: 'application/json',
@@ -79,7 +79,7 @@ function GetQuestion() {
                 html += `<tr>
                     <td class="p-1 text-center align-middle">${item.stt}</td>
                     <td class="p-1 ">
-                        <a href='@Url.Action("QuestionDetails", "CourseExamResult")?questionId=${item.id}&courseId=${courseId}' target="_blank" class="link-color" style="white-space: pre-line;">${item.questionText}</a>
+                        <a href="/CourseExamResult/QuestionDetails?questionId=${item.id}&courseId=${courseId}" target="_blank" class="link-color" style="white-space: pre-line;">${item.questionText}</a>
                     </td>
                 </tr>`;
             })
@@ -99,7 +99,7 @@ function DoExam() {
         Note: ""
     };
     $.ajax({
-        url: '@Url.Action("CreatePracticeResult", "CourseExamPractice")',
+        url: "/CourseExamPractice/CreatePracticeResult",
         type: "POST",
         dataType: 'json',
         contentType: 'application/json',
@@ -140,7 +140,7 @@ function onSave() {
         Note: ""
     };
     $.ajax({
-        url: '@Url.Action("ConfirmPractice", "CourseExamPractice")',
+        url: "/CourseExamPractice/ConfirmPractice",
         type: "POST",
         dataType: 'json',
         contentType: 'application/json',
@@ -165,7 +165,7 @@ function onSave() {
 
                 console.log(arrData);
                 $.ajax({
-                    url: '@Url.Action("CreateListExamValuate", "CourseExamPractice")',
+                    url: "/CourseExamPractice/CreateListExamValuate",
                     type: "POST",
                     dataType: 'json',
                     contentType: 'application/json',
