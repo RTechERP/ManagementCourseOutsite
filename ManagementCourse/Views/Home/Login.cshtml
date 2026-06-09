@@ -1,4 +1,4 @@
-﻿@{
+@{
     Layout = null;
 }
 
@@ -69,12 +69,12 @@
                         <form method="post" action="/Home/Login" class="needs-validation">
                             <p class="text-danger">@ViewBag.Error</p>
                             <div class="mb-3">
-                                <label for="username" class="form-label">Username</label>
+                                <label for="username" class="form-label">Email</label>
                                 <input type="text"
                                        class="form-control"
                                        id="username"
                                        name="username"
-                                       placeholder=" username"
+                                       placeholder="example@email.com"
                                        autofocus />
                             </div>
                             <div class="mb-3 form-password-toggle">
@@ -102,6 +102,8 @@
                         </p>
                         <p class="text-center mt-2">
                             <a href="/Home/ChangePassword">Đổi mật khẩu?</a>
+                            &nbsp;|&nbsp;
+                            <a href="/Home/ForgotPassword">Quên mật khẩu?</a>
                         </p>
 
                     </div>

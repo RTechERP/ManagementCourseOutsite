@@ -1,4 +1,4 @@
-﻿using ManagementCourse.IReposiory;
+using ManagementCourse.IReposiory;
 using ManagementCourse.Models.Context;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -109,6 +109,18 @@ namespace ManagementCourse.Reposiory
         public IEnumerable<T> Find(Func<T, bool> predicate)
         {
             return table.Where(predicate);
+        }
+
+        public IEnumerable<T> GetAll(Func<T, bool> predicate)
+        {
+            return table.Where(predicate).ToList();
+        }
+
+        public async Task<int> UpdateAsync(T item)
+        {
+            table.Attach(item);
+            db.Entry(item).State = EntityState.Modified;
+            return await db.SaveChangesAsync();
         }
     }
 }
