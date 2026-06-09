@@ -41,7 +41,7 @@
             border-radius: 10px;
             outline: none;
             transition: border-color 0.2s, box-shadow 0.2s;
-            caret-color: transparent;
+            caret-color: #1677ff;
         }
         .otp-inputs input:focus {
             border-color: #1677ff;
@@ -216,11 +216,19 @@
         }
 
         function tickOtp() {
-            const expiry = parseInt(sessionStorage.getItem(OTP_EXPIRY_KEY));
+            const expiryStr = sessionStorage.getItem(OTP_EXPIRY_KEY);
+            // Guard: đã xóa khỏi sessionStorage (hết hạn từ trước) → giữ trạng thái expired
+            if (!expiryStr) {
+                timerEl.textContent = '00:00';
+                badge.classList.add('expired');
+                badge.querySelector('i').className = 'bx bx-x-circle';
+                btnVerify.disabled = true;
+                return;
+            }
+            const expiry = parseInt(expiryStr);
             const remaining = Math.max(0, Math.floor((expiry - Date.now()) / 1000));
 
             if (remaining <= 0) {
-                // clearInterval(otpInterval);
                 timerEl.textContent = '00:00';
                 badge.classList.add('expired');
                 badge.querySelector('i').className = 'bx bx-x-circle';
@@ -234,11 +242,18 @@
         }
 
         function tickResend() {
-            const cooldownExpiry = parseInt(sessionStorage.getItem(RESEND_COOLDOWN_KEY));
+            const cooldownStr = sessionStorage.getItem(RESEND_COOLDOWN_KEY);
+            // Guard: đã xóa khỏi sessionStorage → bật lại nút gửi
+            if (!cooldownStr) {
+                resendLink.style.pointerEvents = '';
+                resendLink.style.opacity = '';
+                resendCooldown.style.display = 'none';
+                return;
+            }
+            const cooldownExpiry = parseInt(cooldownStr);
             const remaining = Math.max(0, Math.floor((cooldownExpiry - Date.now()) / 1000));
 
             if (remaining <= 0) {
-                clearInterval(resendInterval);
                 resendLink.style.pointerEvents = '';
                 resendLink.style.opacity = '';
                 resendCooldown.style.display = 'none';
