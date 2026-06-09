@@ -45,7 +45,10 @@
                             @*<a href="/Lesson/Index?courseId=@item.ID&catalogId=@item.CatalogID" class="px-0">@item.NameCourse</a>*@
                             @if (item.Status == 1)
                             {
-                                <a href="/Lesson/Index?courseId=@item.ID&catalogId=@item.CatalogID" class="px-0">@item.NameCourse</a>
+                                <a asp-controller="Lesson"
+                                   asp-action="Index"
+                                   asp-route-courseId="@item.ID"
+                                   asp-route-catalogId="@item.CatalogID" class="px-0">@item.NameCourse</a>
                             }
                             else
                             {
@@ -100,7 +103,10 @@
                 @*<a href="/Lesson/Index?courseId=@item.ID&catalogId=@item.CatalogID" class="btn btn-primary btn-sm">Xem chi tiết</a>*@
                 @if (item.Status == 1)
                 {
-                    <a href="/Lesson/Index?courseId=@item.ID&catalogId=@item.CatalogID" class="btn btn-primary btn-sm">Xem chi tiết</a>
+                    <a asp-controller="Lesson"
+                       asp-action="Index"
+                       asp-route-courseId="@item.ID"
+                       asp-route-catalogId="@item.CatalogID" class="btn btn-primary btn-sm">Xem chi tiết</a>
                 }
                 else
                 {
