@@ -105,4 +105,8 @@ public partial class User
     /// Nguồn giới thiệu
     /// </summary>
     public string ReferralSource { get; set; }
+
+    public string PhoneNumber { get; set; }
+
+    public string Address { get; set; }
 }

@@ -619,6 +619,7 @@ public partial class RTCCourseContext : DbContext
                 .HasComment("Đơn vị công tác");
             entity.Property(e => e.PassExpireDate).HasColumnType("datetime");
             entity.Property(e => e.PasswordHash).HasMaxLength(250);
+            entity.Property(e => e.PhoneNumber).HasMaxLength(100);
             entity.Property(e => e.PinPassword).HasMaxLength(255);
             entity.Property(e => e.Position)
                 .HasMaxLength(550)
