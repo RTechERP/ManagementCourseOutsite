@@ -205,7 +205,7 @@ namespace ManagementCourse.Controllers
         [HttpPost]
         public async Task<IActionResult> RegisterAsync(string fullName, string birthDate, int gender, string email,
             string Organization, string Position, string password, string confirmPassword,
-            string ReferralSource, string OtherReferralSource)
+            string ReferralSource, string OtherReferralSource, string PhoneNumber, string Address)
         {
             // Lưu lại giá trị form để hiển thị lại khi có lỗi
             ViewData["FullName"] = fullName;
@@ -214,15 +214,24 @@ namespace ManagementCourse.Controllers
             ViewData["Email"] = email;
             ViewData["Organization"] = Organization;
             ViewData["Position"] = Position;
+            ViewData["PhoneNumber"] = PhoneNumber;
+            ViewData["Address"] = Address;
 
             // Validate required fields
             if (string.IsNullOrEmpty(fullName) || string.IsNullOrEmpty(birthDate) ||
                 gender == 0 || string.IsNullOrEmpty(email) ||
                 string.IsNullOrEmpty(Organization) || string.IsNullOrEmpty(Position) ||
+                string.IsNullOrEmpty(PhoneNumber) || string.IsNullOrEmpty(Address) ||
                 string.IsNullOrEmpty(ReferralSource) ||
                 string.IsNullOrEmpty(password) || string.IsNullOrEmpty(confirmPassword))
             {
                 ViewBag.Error = "Vui lòng nhập đầy đủ thông tin!";
+                return View();
+            }
+
+            if (!System.Text.RegularExpressions.Regex.IsMatch(PhoneNumber, @"^(0[0123456789])\d{8}$"))
+            {
+                ViewBag.Error = "Số điện thoại không hợp lệ! Vui lòng nhập 10 chữ số.";
                 return View();
             }
 
@@ -268,8 +277,8 @@ namespace ManagementCourse.Controllers
             try
             {
                 DataTable result = LoadDataFromSP.GetDataTableSP("spRegister",
-                    new string[] { "@FullName", "@BirthDate", "@Gender", "@Email", "@Organization", "@Position", "@ReferralSource", "@Password" },
-                    new object[] { fullName, birthDate, gender, email, Organization, Position, finalReferralSource, hashedPassword });
+                    new string[] { "@FullName", "@BirthDate", "@Gender", "@Email", "@Organization", "@Position", "@ReferralSource", "@Password", "@PhoneNumber", "@Address" },
+                    new object[] { fullName, birthDate, gender, email, Organization, Position, finalReferralSource, hashedPassword, PhoneNumber, Address });
 
                 if (result.Rows.Count > 0 && Convert.ToInt32(result.Rows[0]["UserID"]) > 0)
                 {
