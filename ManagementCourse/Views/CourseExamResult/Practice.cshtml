@@ -1,99 +1,351 @@
-﻿<link href="~/css/style.css" rel="stylesheet" />
-
+@section Styles {
 <style>
-    #tbody_history_result tr:focus {
-        background-color: navajowhite;
+    /* ===== BREADCRUMB ===== */
+    .exam-breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        color: #888;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+    }
+    .exam-breadcrumb a { color: #888; text-decoration: none; transition: color .2s; }
+    .exam-breadcrumb a:hover { color: #1677ff; }
+    .exam-breadcrumb i { font-size: 14px; color: #bbb; }
+    .exam-breadcrumb .exam-title {
+        font-weight: 700;
+        color: #1a1a1a;
+        flex: 1;
+    }
+
+    /* ===== STATUS BADGES ===== */
+    .status-badge {
+        font-size: 12px;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 20px;
+        display: inline-block;
+        text-align: center;
+        border: 1px solid transparent;
+        white-space: nowrap;
+    }
+    .status-badge.status-passed {
+        background-color: #f6ffed;
+        color: #52c41a;
+        border-color: #b7eb8f;
+    }
+    .status-badge.status-failed {
+        background-color: #fff2f0;
+        color: #ff4d4f;
+        border-color: #ffccc7;
+    }
+    .status-badge.status-pending {
+        background-color: #fff7e6;
+        color: #fa8c16;
+        border-color: #ffd591;
+    }
+
+    /* ===== CARDS & SHADOWS ===== */
+    .practice-card {
+        background: #fff;
+        border: 1px solid #e8e8e8;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        transition: box-shadow 0.3s ease;
+    }
+    .practice-card:hover {
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
+    }
+    .practice-card-header {
+        border-bottom: 1px solid #f0f0f0;
+        padding: 16px 20px;
+        background: transparent;
+    }
+    .practice-card-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #1f1f1f;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* ===== TABLES ===== */
+    .practice-table {
+        margin-bottom: 0;
+    }
+    .practice-table thead th {
+        background-color: #fafafa !important;
+        color: #434343 !important;
+        font-weight: 700;
+        font-size: 13px;
+        border-bottom: 1px solid #f0f0f0 !important;
+        padding: 12px 16px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .practice-table tbody td, .practice-table tbody th {
+        padding: 12px 16px;
+        border-bottom: 1px solid #f0f0f0 !important;
+        font-size: 13px;
+        vertical-align: middle;
+        font-weight: normal;
+        color: #262626;
+    }
+    .practice-table tbody tr {
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .practice-table tbody tr:hover {
+        background-color: #fafafa;
+    }
+    .practice-table tbody tr.selected-row {
+        background-color: #e6f4ff !important;
+        border-left: 4px solid #1677ff !important;
+    }
+    .practice-table tbody tr.selected-row td, 
+    .practice-table tbody tr.selected-row th {
+        color: #0958d9 !important;
+        font-weight: 600;
+    }
+
+    /* ===== BUTTONS ===== */
+    .btn-gradient-success {
+        background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%) !important;
+        border: none !important;
+        color: #fff !important;
+        font-weight: 600 !important;
+        box-shadow: 0 2px 8px rgba(82, 196, 26, 0.25);
+        transition: all 0.3s ease;
+        padding: 8px 16px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .btn-gradient-success:hover {
+        background: linear-gradient(135deg, #73d13d 0%, #52c41a 100%) !important;
+        box-shadow: 0 4px 12px rgba(82, 196, 26, 0.4);
+        transform: translateY(-1px);
+    }
+    .btn-gradient-primary {
+        background: linear-gradient(135deg, #1677ff 0%, #0958d9 100%) !important;
+        border: none !important;
+        color: #fff !important;
+        font-weight: 600 !important;
+        box-shadow: 0 2px 8px rgba(22, 119, 255, 0.25);
+        transition: all 0.3s ease;
+        padding: 8px 20px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .btn-gradient-primary:hover {
+        background: linear-gradient(135deg, #4096ff 0%, #1677ff 100%) !important;
+        box-shadow: 0 4px 12px rgba(22, 119, 255, 0.4);
+        transform: translateY(-1px);
+    }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+        text-align: center;
+        background: #fafafa;
+        border: 1px dashed #d9d9d9;
+        border-radius: 8px;
+    }
+    .empty-state-icon {
+        font-size: 48px;
+        color: #bfbfbf;
+        margin-bottom: 16px;
+    }
+    .empty-state-text {
+        font-size: 14px;
+        color: #8c8c8c;
+        max-width: 280px;
+        line-height: 1.5;
+    }
+
+    /* ===== QUESTION CARDS IN MODAL ===== */
+    .question-practice-card {
+        border: 1px solid #f0f0f0;
+        border-left: 4px solid #1677ff !important;
+        border-radius: 10px;
+        background: #fff;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 100%;
+        overflow: hidden;
+    }
+    .question-practice-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08) !important;
+        border-color: #d9d9d9;
+    }
+    .text-line-clamp-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;  
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .question-card-footer {
+        background-color: #fafafa;
+        border-top: 1px solid #f0f0f0;
+        padding: 10px 16px;
+    }
+    .text-justify {
+        text-align: justify;
+    }
+
+    /* ===== FULL HEIGHT LAYOUT ===== */
+    .practice-main-row {
+        min-height: calc(100vh - 190px);
+        align-items: stretch;
+    }
+    .practice-card.card {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+    .practice-card .card-body {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden; /* Ẩn scroll của card body */
+        padding: 16px !important;
+    }
+    .practice-card .table-responsive {
+        flex: 1 1 auto;
+        overflow-y: auto; /* Cuộn độc lập bên trong bảng */
+        height: 100%;
+    }
+    @@media (max-width: 768px) {
+        .practice-main-row {
+            min-height: auto;
+        }
     }
 </style>
+}
 
-<div class="mb-2 row pe-3 ps-2">
-    <div class="col-12 col-sm-9">
-        <h4 class="fw-bold mb-2">Bài thi thực hành @ViewBag.TableName @ViewBag.CourseName</h4>
-    </div>
-
-    <button class="btn btn-success btn-sm col-12 col-sm-3" style="color: black" onclick="DoExam()" ><i class='bx bxs-pen'></i>Làm bài</button>
-</div>
-<div class="card">
-    <div class="card-body p-2">
-        <div class="row">
-            <div class="col-12 col-sm-6">
-                <h5 class="mb-0">Lịch sử thi</h5>
-                <div class="table-responsive text-nowrap mb-1">
-                    <table class="table table-hover table-bordered">
-                        <thead class="bg-info text-center">
-                            <tr>
-                                <th class="text-white">Thời gian thi</th>
-                                <th class="text-white">Điểm cần đạt</th>
-                                <th class="text-white">Điểm thi</th>
-                                <th class="text-white">Kết quả</th>
-                                
-                            </tr>
-                        </thead>
-                        <tbody class="table-border-bottom-0" id="tbody_history_result">
-                        </tbody>
-                    </table>
-                </div>
+<!-- ===== BREADCRUMB ===== -->
+<nav class="exam-breadcrumb">
+    <a asp-controller="Home" asp-action="Index"><i class="bx bx-home-alt"></i> Trang chủ</a>
+    <i class="bx bx-chevron-right"></i>
+    <a asp-controller="Lesson" asp-action="Index" asp-route-courseId="@ViewBag.CourseId">Khoá học @ViewBag.CourseName</a>
+    <i class="bx bx-chevron-right"></i>
+    <a asp-controller="CourseExamResult" asp-action="Practice" asp-route-courseId="@ViewBag.CourseId" asp-route-lessonID="@ViewBag.LessonId" class="exam-title">Bài thi thực hành @ViewBag.TableName @ViewBag.CourseName</a>
+    <button class="btn btn-gradient-success  ms-auto" onclick="DoExam()">
+        <i class='bx bxs-pen'></i> Làm bài thi
+    </button>
+</nav>
+<div class="row g-4 practice-main-row">
+    <!-- Cột Lịch sử thi (Bên trái) -->
+    <div class="col-12 col-md-6">
+        <div class="practice-card card h-100">
+            <div class="practice-card-header card-header">
+                <h5 class="practice-card-title"><i class="bx bx-history text-primary"></i> Lịch sử thi thực hành</h5>
             </div>
-            <div class="col-12 col-sm-6">
-                <h5 class="mb-0">Kết quả thi</h5>
+            <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover table-bordered">
-                        <thead class="bg-info text-center">
+                    <table class="practice-table table table-hover table-borderless align-middle text-nowrap">
+                        <thead>
                             <tr>
-                                <th class="text-white" style="width: 5%">STT</th>
-                                <th class="text-white" style="width: 40%">Câu hỏi</th>
-                                <th class="text-white" style="width: 5%">Điểm</th>
-                                <th class="text-white" style="width: 40%">Ghi chú</th>
+                                <th class="text-center" style="width: 35%">Thời gian thi</th>
+                                <th class="text-center" style="width: 20%">Cần đạt</th>
+                                <th class="text-center" style="width: 20%">Điểm thi</th>
+                                <th class="text-center" style="width: 25%">Kết quả</th>
                             </tr>
                         </thead>
-                        <tbody class="table-border-bottom-0 text-wrap" id="tbody_practice_result">
+                        <tbody id="tbody_history_result">
+                            <!-- Chèn động lịch sử qua JS -->
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">
+                                    <i class="bx bx-loader-alt bx-spin me-1"></i> Đang tải lịch sử...
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Cột Kết quả thi chi tiết (Bên phải) -->
+    <div class="col-12 col-md-6">
+        <div class="practice-card card h-100">
+            <div class="practice-card-header card-header">
+                <h5 class="practice-card-title"><i class="bx bx-list-check text-success"></i> Chi tiết lượt thi</h5>
+            </div>
+            <div class="card-body p-3">
+                <!-- Trạng thái trống (Empty state) -->
+                <div id="detail_empty_state" class="empty-state-box my-3" style="height:100%">
+                    <i class="bx bx-select-multiple empty-state-icon"></i>
+                    <div class="empty-state-text">Chọn một lượt thi từ danh sách lịch sử để xem kết quả câu hỏi chi tiết</div>
+                </div>
+
+                <!-- Bảng chi tiết kết quả (Ban đầu ẩn) -->
+                <div id="detail_table_container" style="display: none; width: 100%;">
+                    <div class="table-responsive">
+                        <table class="practice-table table table-hover table-borderless align-middle text-wrap">
+                            <thead>
+                                <tr>
+                                    <th class="text-center" style="width: 10%">STT</th>
+                                    <th style="width: 50%">Câu hỏi</th>
+                                    <th class="text-center" style="width: 15%">Điểm</th>
+                                    <th style="width: 25%">Ghi chú</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody_practice_result">
+                                <!-- Chèn động chi tiết qua JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-
-
+<!-- Modal thi thực hành -->
 <div class="modal fade" id="modal_exam_practice_test" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-fullscreen">
-        <div class="modal-content" style="background-color: #eceef1;">
-            <div class="modal-body p-3 px-2">
-                <div class="mb-2 row pe-3 ps-2">
-                    <div class="col-12 col-sm-10">
-                        <h4 class="fw-bold col-12 col-sm-9 mb-0">Bài thi thực hành @ViewBag.TableName @ViewBag.CourseName</h4>
-                        <p class="mb-0 pb-0" id="time-exam"></p>
-                    </div>
-
-                    <button class="btn btn-success btn-sm col-12 col-sm-2" onclick=" onSubmit()" style="color: black; font-size:16px">
-                        <i class='bx bx-check' style="font-size:24px"></i> Hoàn thành
-                    </button>
+        <div class="modal-content" style="background-color: #f4f5f7;">
+            <div class="modal-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="modal-title fw-bold text-dark mb-1"><i class='bx bx-laptop me-1 text-primary'></i> BÀI THI THỰC HÀNH: @ViewBag.TableName</h5>
+                    <p class="text-muted mb-0 font-size-13" id="time-exam"></p>
                 </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-gradient-success" onclick="onSubmit()">
+                        <i class='bx bx-check-double fs-5'></i> Hoàn thành bài thi
+                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+            </div>
 
-                <div class="card">
-                    <div class="card-body p-2">
-                        <div class="table-responsive text-wrap">
-                            <table class="table table-hover table-bordered">
-                                <thead class="bg-info text-center">
-                                    <tr>
-                                        <th class="text-white" style="width: 5%">STT</th>
-                                        <th class="text-white">Câu hỏi</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="table-border-bottom-0" id="tbody_exam_result">
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+            <div class="modal-body p-4 overflow-auto">
+                <div class="mb-3">
+                    <h6 class="fw-bold text-dark"><i class="bx bx-list-ol text-primary me-1"></i> DANH SÁCH CÂU HỎI THỰC HÀNH</h6>
+                    <p class="text-muted font-size-13">Vui lòng bấm vào từng câu hỏi bên dưới để mở liên kết thực hiện bài thi thực hành của bạn.</p>
+                </div>
+                <!-- Vùng lưới Card câu hỏi -->
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3" id="practice_question_grid">
+                    <!-- Sẽ được render động dạng Card thông qua JS -->
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-
 
 @section Scripts {
     <script>
@@ -101,7 +353,6 @@
         var lessonId = @ViewBag.LessonId;
         var courseExamId = @ViewBag.CourseExamID;
         var testTime = @ViewBag.TestTime;
-      //  var examResultID = @ViewBag.ExamResultID;
     </script>
 }
 

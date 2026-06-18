@@ -1,10 +1,4 @@
 ﻿@using Microsoft.AspNetCore.Http;
-@{
-    var userGroupID = Context.Session.GetInt32("UserGroupID");
-    var deparmentID = Context.Session.GetInt32("department_id");
-    var kpiPositionTypeID = Context.Session.GetInt32("KPIPositionTypeID");
-}
-
 @model IEnumerable<IGrouping<string, ManagementCourse.Models.DTO.CourseCatalogDTO>>
 
 <style>
@@ -48,6 +42,7 @@
                             </a>
                         </li>
                     }
+
                 </ul>
             </li>
         }

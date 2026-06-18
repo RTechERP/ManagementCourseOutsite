@@ -1,102 +1,1761 @@
-﻿
-<h4 class="fw-bold" id="course_name_lesson">
-    Tên khoá học
-</h4>
+@using Microsoft.AspNetCore.Http
+@{
+    ViewBag.PageTitle = "Bài học — RTC";
+    ViewBag.ActiveSidebar = "home";
+}
 
-<div class="row">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-body pt-1" id="lesson_content_header">
-                <div class="row m-0">
-                    <div class="col-sm-10 p-0">
-                        <h5 class="card-title m-0">Tên bài học</h5>
-                    </div>
+@section Styles {
+    <style>
+        /* ===== BREADCRUMB ===== */
+        .lesson-breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
 
-                    <div class="col-sm-2 p-0">
-                        <h6 class="card-subtitle text-success m-0 card-subtitle-status">Đã học</h6>
-                    </div>
-                </div>
-                <iframe src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen
-                        style="width:100%; height:700px;"></iframe>
+            .lesson-breadcrumb a {
+                color: #888;
+                text-decoration: none;
+                transition: color .2s;
+            }
+
+                .lesson-breadcrumb a:hover {
+                    color: #7c3aed;
+                }
+
+            .lesson-breadcrumb i {
+                font-size: 15px
+            }
+
+        /* ===== PAGE HEADER ===== */
+        .lesson-page-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .lesson-course-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: #1a1a1a;
+            margin: 0;
+            line-height: 1.35;
+        }
+
+        .btn-favorite {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 18px;
+            border: 1.5px solid #ff4d94;
+            border-radius: 24px;
+            background: #fff;
+            color: #ff4d94;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .2s, box-shadow .2s;
+            white-space: nowrap;
+            flex-shrink: 0;
+            margin-left: auto;
+        }
+
+            .btn-favorite:hover {
+                background: #fff0f6;
+                box-shadow: 0 2px 8px rgba(255,77,148,.2);
+            }
+
+            .btn-favorite i {
+                font-size: 16px;
+            }
+
+        /* ===== 2-COLUMN LAYOUT ===== */
+        .lesson-layout {
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 20px;
+            align-items: start;
+        }
+
+        @@media (max-width: 1100px) {
+            .lesson-layout {
+                grid-template-columns: 1fr 300px;
+            }
+        }
+
+        @@media (max-width: 860px) {
+            .lesson-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ===== LEFT: VIDEO CARD ===== */
+        .lesson-video-card {
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid #e8e8e8;
+            overflow: hidden;
+            margin-bottom: 0;
+        }
+
+        /* Style phần JS inject vào #lesson_content_header */
+        #lesson_content_header {
+            padding: 0;
+        }
+
+            #lesson_content_header .row.m-0 {
+                display: flex !important;
+                align-items: center !important;
+                padding: 14px 18px;
+                border-bottom: 1px solid #f0f0f0;
+                background: #fafafa;
+                gap: 12px;
+            }
+
+            #lesson_content_header .col-sm-10.p-0 {
+                flex: 1 !important;
+                min-width: 0;
+                overflow: hidden;
+            }
+
+            #lesson_content_header .col-sm-2.p-0 {
+                flex-shrink: 0 !important;
+                width: auto !important;
+                display: flex;
+                justify-content: flex-end;
+            }
+
+            #lesson_content_header h5.card-title {
+                font-size: 15px;
+                font-weight: 700;
+                color: #1a1a1a;
+                margin: 0;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            #lesson_content_header h6.card-subtitle-status {
+                font-size: 11px;
+                font-weight: 600;
+                padding: 4px 12px;
+                border-radius: 20px;
+                border: 1px solid #b7eb8f;
+                background: #f6ffed;
+                color: #52c41a;
+                text-align: center;
+                white-space: nowrap;
+                margin: 0;
+                width: auto !important;
+                min-width: 72px;
+                max-width: 120px;
+            }
+
+            #lesson_content_header iframe {
+                display: block;
+                width: 100%;
+                height: 460px;
+                border: none;
+            }
+
+        /* ===== TABS BAR ===== */
+        .lesson-tabs-bar {
+            display: flex;
+            gap: 0;
+            background: #fff;
+            border-top: none;
+            border-left: 1px solid #e8e8e8;
+            border-right: 1px solid #e8e8e8;
+            border-bottom: 2px solid #e8e8e8;
+            margin-top: 12px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+            .lesson-tabs-bar::-webkit-scrollbar {
+                display: none;
+            }
+
+        .lesson-tab {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 12px 18px;
+            border: none;
+            background: transparent;
+            font-size: 13px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: color .2s, border-color .2s;
+            white-space: nowrap;
+        }
+
+            .lesson-tab i {
+                font-size: 15px;
+            }
+
+            .lesson-tab:hover {
+                color: #7c3aed;
+            }
+
+            .lesson-tab.active {
+                color: #7c3aed;
+                border-bottom-color: #7c3aed;
+            }
+
+        /* ===== TAB CONTENT AREA ===== */
+        .lesson-tab-content {
+            background: #fff;
+            border: 1px solid #e8e8e8;
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            /* Fix cứng 1 màn hình: 70px (main margin) + 48px (breadcrumb) + 46px (tab bar) */
+            height: calc(100vh - 164px);
+            overflow: hidden;
+        }
+
+        .tab-pane {
+            display: none;
+            height: 100%; /* fill đầy tab-content */
+            overflow-y: auto; /* scroll nội dung dài bên trong */
+            padding: 20px;
+        }
+
+            .tab-pane.active {
+                display: block;
+            }
+
+        #lesson_content_body {
+            font-size: 14px;
+            line-height: 1.75;
+            color: #333;
+        }
+
+        #lesson_content_pdf.tab-pane {
+            padding: 0; /* iframe cần 100% height, không được có padding */
+        }
+
+        #lesson_content_pdf iframe {
+            display: block;
+            width: 100%;
+            height: 100%; /* fill đầy pane thay vì fix 600px */
+            border: 1px solid #e8e8e8;
+            border-radius: 6px;
+        }
+
+        #download_file_lesson_container h5 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+        }
+
+        .qa-coming-soon {
+            text-align: center;
+            padding: 52px 24px;
+            color: #bbb;
+        }
+
+            .qa-coming-soon i {
+                font-size: 52px;
+                display: block;
+                margin-bottom: 12px;
+            }
+
+            .qa-coming-soon p {
+                font-size: 14px;
+            }
+
+        /* ===== RIGHT SIDEBAR ===== */
+        .lesson-right {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            position: sticky;
+            top: 76px;
+        }
+
+        .lesson-sidebar-card {
+            background: #fff;
+            border: 1px solid #e8e8e8;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .sidebar-card-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a1a1a;
+            padding: 13px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            background: #fafafa;
+        }
+
+            .sidebar-card-title i {
+                font-size: 17px;
+                color: #7c3aed;
+            }
+
+        /* Tiến độ */
+        .progress-body {
+            padding: 16px;
+        }
+
+        .lesson-progress-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .lesson-progress-bar {
+            flex: 1;
+            height: 8px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .lesson-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #52c41a, #95de64);
+            border-radius: 8px;
+            transition: width .5s ease;
+        }
+
+        .lesson-progress-pct {
+            font-size: 16px;
+            font-weight: 800;
+            color: #52c41a;
+            min-width: 44px;
+            text-align: right;
+        }
+
+        .progress-desc {
+            font-size: 12px;
+            color: #888;
+            margin: 0;
+        }
+
+        /* Danh sách bài học */
+        .lesson-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+            .lesson-list::-webkit-scrollbar {
+                width: 4px;
+            }
+
+            .lesson-list::-webkit-scrollbar-thumb {
+                background: #e0e0e0;
+                border-radius: 4px;
+            }
+
+            /* Override Bootstrap list-group styles */
+            .lesson-list .list-group-item {
+                display: flex !important;
+                align-items: center !important;
+                flex-wrap: nowrap !important;
+                border-left: 3px solid transparent !important;
+                border-right: none !important;
+                border-radius: 0 !important;
+                border-top-color: #f5f5f5 !important;
+                border-bottom-color: #f5f5f5 !important;
+                padding: 10px 14px !important;
+                gap: 8px;
+                transition: background .15s, border-color .15s;
+            }
+
+                .lesson-list .list-group-item:first-child {
+                    border-top: none !important;
+                }
+
+                .lesson-list .list-group-item .badge {
+                    font-size: 11px;
+                    width: 22px;
+                    height: 22px;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 50%;
+                    flex-shrink: 0;
+                    background: #e0e7ff !important;
+                    color: #4338ca !important;
+                }
+
+                .lesson-list .list-group-item a.text-dark {
+                    font-size: 13px;
+                    color: #333 !important;
+                    line-height: 1.45;
+                    text-decoration: none;
+                    flex: 1;
+                    min-width: 0;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+
+                    .lesson-list .list-group-item a.text-dark:hover {
+                        color: #7c3aed !important;
+                    }
+
+            .lesson-list .form-check-input {
+                width: 16px;
+                height: 16px;
+                cursor: pointer;
+                flex-shrink: 0;
+                margin: 0 !important;
+            }
+
+            /* Bài đang xem — active */
+            .lesson-list .list-group-item.active,
+            .lesson-list .list-group-item-action.active {
+                background: #f5f3ff !important;
+                border-left-color: #7c3aed !important;
+                color: inherit !important;
+            }
+
+                .lesson-list .list-group-item.active a.text-dark,
+                .lesson-list .list-group-item-action.active a.text-dark {
+                    color: #7c3aed !important;
+                    font-weight: 700;
+                }
+
+                .lesson-list .list-group-item.active .badge {
+                    background: #7c3aed !important;
+                    color: #fff !important;
+                }
+
+            /* Dropdown Bài test */
+            .lesson-list .dropdown {
+                flex-shrink: 0;
+            }
+
+            .lesson-list .btn-primary.dropdown-toggle {
+                font-size: 11px;
+                padding: 3px 8px;
+                border-radius: 6px;
+                background: #7c3aed;
+                border-color: #7c3aed;
+            }
+
+                .lesson-list .btn-primary.dropdown-toggle:hover {
+                    background: #6d28d9;
+                    border-color: #6d28d9;
+                }
+
+            .lesson-list .dropdown-menu {
+                font-size: 13px;
+            }
+
+            .lesson-list .dropdown-item:hover {
+                background: #f5f3ff;
+                color: #7c3aed;
+            }
+
+        /* ===== NO-VIDEO: thu gọn khi bài không có video ===== */
+        .lesson-video-card.no-video {
+            /* Giữ nguyên border/background/border-radius của card */
+            margin-bottom: 0 !important;
+        }
+
+            .lesson-video-card.no-video #lesson_content_header .row.m-0 {
+                border-bottom: none !important; /* tab bar ngay dưới thay thế border này */
+            }
+
+            .lesson-video-card.no-video #lesson_content_header iframe {
+                display: none !important;
+                height: 0 !important;
+            }
+            /* Tab bar liền ngay dưới card tiêu đề */
+            .lesson-video-card.no-video + .lesson-tabs-bar {
+                margin-top: 0 !important;
+                border-top: 1px solid #e8e8e8;
+            }
+
+        /* ===== LIKE NÚT BÀI HỌC ===== */
+        .btn-favorite.liked {
+            background: #fff0f6;
+            border-color: #ff4d94;
+            color: #ff4d94;
+            box-shadow: 0 2px 8px rgba(255,77,148,.3);
+        }
+
+        /* ===== COMMENT SECTION ===== */
+        .comment-input-box {
+            display: flex;
+            gap: 10px;
+            padding: 14px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            background: #fafafa;
+        }
+
+        .comment-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            background: #e8e8e8;
+        }
+
+        .comment-input-wrap {
+            flex: 1;
+        }
+
+        .comment-textarea {
+            width: 100%;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 13px;
+            resize: vertical;
+            min-height: 40px;
+            transition: border-color .2s, min-height .2s;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+
+            .comment-textarea:focus {
+                outline: none;
+                border-color: #7c3aed;
+                box-shadow: 0 0 0 2px rgba(124,58,237,.1);
+                min-height: 72px;
+            }
+
+        .comment-actions-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 6px;
+            justify-content: flex-end;
+        }
+
+        .reply-info {
+            font-size: 12px;
+            color: #7c3aed;
+            flex: 1;
+        }
+
+        .btn-cancel-reply {
+            background: none;
+            border: none;
+            color: #999;
+            font-size: 12px;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+
+        .btn-submit-comment {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 14px;
+            background: #7c3aed;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background .2s;
+        }
+
+            .btn-submit-comment:hover {
+                background: #6d28d9;
+            }
+
+        .comment-item {
+            display: block; /* block wrapper — không phải flex nữa */
+            border-bottom: 1px solid #fafafa;
+            position: relative; /* cho connect-to-above::before */
+        }
+            /* Cấp con 1 */
+            .comment-item.is-reply {
+                border-bottom: 1px solid #f5f5f5;
+            }
+            /* Cấp con 2: cùng hàng với Cấp con 1 */
+            .comment-item.is-reply-2 {
+                border-bottom: 1px solid #f5f5f5;
+                position: relative;
+            }
+        /* comment-main: flex row chứa avatar + body (không có replies bên trong) */
+        .comment-main {
+            display: flex;
+            gap: 10px;
+            padding: 12px 16px;
+            position: relative; /* QUAN TRỌNG: cho thread line ::after */
+            --avatar-left: 34px; /* root level: 16px padding + 18px nửa avatar */
+        }
+        /* Level 1/2: padding-left 0 → avatar center = 18px */
+        .comment-item.is-reply > .comment-main,
+        .comment-item.is-reply-2 > .comment-main {
+            padding-left: 0;
+            --avatar-left: 18px;
+        }
+        /* Thread line ĐI XUỐNG: chỉ đến đáy .comment-main, không xâm lấn replies. Chỉ vẽ cho cấp con (level >= 1) */
+        .comment-item.is-reply.replies-open > .comment-main::after,
+        .comment-item.is-reply-2.replies-open > .comment-main::after,
+        .comment-item.is-reply.has-reply-down > .comment-main::after,
+        .comment-item.is-reply-2.has-reply-down > .comment-main::after {
+            content: '';
+            position: absolute;
+            left: var(--avatar-left); /* tự động theo level */
+            top: 46px; /* dưới avatar: 12px padding + 36px avatar - 4px */
+            bottom: 0; /* đủng đáy comment-main ONLY, không xuống replies! */
+            width: 2px;
+            background: #e8e0f7;
+            border-radius: 1px;
+            z-index: 1;
+        }
+        /* Thread line ĐI LÊN: từ đầu comment đến đỉnh đầu avatar */
+        .comment-item.connect-to-above::before {
+            content: '';
+            position: absolute;
+            left: 18px; /* level 1/2 luôn có padding-left: 0, avatar center = 18px */
+            top: 0;
+            height: 12px; /* Kết nối thẳng vào đầu avatar ở dưới (12px padding + 2px overlap) */
+            width: 2px;
+            background: #e8e0f7;
+            z-index: 1;
+        }
+
+        .comment-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .comment-header {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 4px;
+            flex-wrap: wrap;
+        }
+
+        .comment-author {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .comment-time {
+            font-size: 11px;
+            color: #aaa;
+        }
+
+        .comment-edited {
+            font-size: 11px;
+            color: #ccc;
+            font-style: italic;
+        }
+
+        .comment-content {
+            font-size: 13px;
+            color: #444;
+            line-height: 1.65;
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+
+            .comment-content .mention {
+                color: #5b21b6;
+                background: rgba(124, 58, 237, 0.12);
+                border-radius: 4px;
+                padding: 1px 5px;
+                font-weight: 600;
+                font-size: 0.97em;
+                white-space: nowrap;
+            }
+        /* Hiển thị "A ▶ B" kiểu TikTok trong header comment */
+        .reply-to-indicator {
+            /* display: inline-flex;
+            align-items: center; */
+            gap: 1px;
+            font-size: 11px;
+            color: #aaa;
+            font-weight: 500;
+            /* margin-left: 3px; */
+            max-width: 130px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+
+            .reply-to-indicator i {
+                font-size: 13px;
+                color: #ccc;
+                flex-shrink: 0;
+            }
+
+            .reply-to-indicator .reply-to-name {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+        .comment-deleted {
+            color: #bbb;
+            font-style: italic;
+        }
+
+        .comment-footer {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 6px;
+        }
+
+        .btn-reply-action, .btn-edit-action, .btn-delete-action {
+            background: none;
+            border: none;
+            font-size: 12px;
+            cursor: pointer;
+            padding: 2px 0;
+            transition: color .2s;
+        }
+
+        .btn-reply-action {
+            color: #7c3aed;
+        }
+
+            .btn-reply-action:hover {
+                color: #6d28d9;
+            }
+
+        .btn-edit-action {
+            color: #888;
+        }
+
+            .btn-edit-action:hover {
+                color: #333;
+            }
+
+        .btn-delete-action {
+            color: #f5222d;
+        }
+
+            .btn-delete-action:hover {
+                color: #cf1322;
+            }
+
+        .btn-show-replies {
+            background: none;
+            border: none;
+            font-size: 12px;
+            color: #7c3aed;
+            cursor: pointer;
+            padding: 4px 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .replies-container {
+            display: none;
+        }
+
+            .replies-container.open {
+                display: block;
+                /* padding-left căn thẳng phần body của comment cha (avatar 36px + gap 10px = 46px) */
+                padding-left: 46px;
+            }
+                /* Cấp con 2 cùng cấp với con 1 (không thụt thêm) */
+                .replies-container.open .replies-container.open {
+                    padding-left: 0;
+                    margin-left: 0;
+                }
+
+        .tab-badge {
+            display: inline-block;
+            background: #7c3aed;
+            color: #fff;
+            border-radius: 10px;
+            font-size: 10px;
+            padding: 1px 5px;
+            min-width: 18px;
+            text-align: center;
+            margin-left: 2px;
+            vertical-align: middle;
+        }
+
+        .comment-load-more {
+            text-align: center;
+            padding: 12px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+            .comment-load-more button {
+                background: none;
+                border: 1px solid #e0e0e0;
+                border-radius: 6px;
+                padding: 7px 18px;
+                font-size: 13px;
+                cursor: pointer;
+                color: #666;
+                transition: border-color .2s;
+            }
+
+                .comment-load-more button:hover {
+                    border-color: #7c3aed;
+                    color: #7c3aed;
+                }
+
+        /* ===== RATING SIDEBAR ===== */
+        .rating-stars-display {
+            font-size: 22px;
+            color: #faad14;
+            margin-bottom: 4px;
+        }
+
+        .rating-avg-text {
+            font-size: 12px;
+            color: #888;
+            margin: 0 0 12px;
+        }
+
+        .btn-open-rating {
+            width: 100%;
+            padding: 8px;
+            background: none;
+            border: 1px solid #7c3aed;
+            border-radius: 6px;
+            color: #7c3aed;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background .2s;
+        }
+
+            .btn-open-rating:hover {
+                background: #f5f3ff;
+            }
+
+        /* ===== PARTICIPANTS ===== */
+        .participant-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px;
+            transition: background .15s;
+        }
+
+            .participant-item:hover {
+                background: #fafafa;
+            }
+
+        .participant-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            background: #e8e8e8;
+        }
+
+        .participant-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .participant-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a1a1a;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .participant-progress {
+            font-size: 11px;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        .participant-status {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+            .participant-status.done {
+                background: #f6ffed;
+                color: #52c41a;
+                border: 1px solid #b7eb8f;
+            }
+
+            .participant-status.inprogress {
+                background: #e6f4ff;
+                color: #1677ff;
+                border: 1px solid #91caff;
+            }
+
+        .sidebar-toggle-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a1a1a;
+            padding: 13px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            background: #fafafa;
+            cursor: pointer;
+            user-select: none;
+        }
+
+            .sidebar-toggle-title i {
+                font-size: 17px;
+                color: #7c3aed;
+            }
+
+                .sidebar-toggle-title i.toggle-icon {
+                    margin-left: auto;
+                    font-size: 18px;
+                    color: #aaa;
+                }
+
+        /* ===== RATING MODAL ===== */
+        .rating-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.5);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+            animation: fadeInOverlay .2s;
+        }
+
+        .rating-modal-box {
+            background: #fff;
+            border-radius: 16px;
+            padding: 32px 28px;
+            width: 420px;
+            max-width: 95vw;
+            text-align: center;
+            box-shadow: 0 24px 64px rgba(0,0,0,.2);
+            position: relative;
+            animation: slideUpModal .25s ease;
+        }
+
+        .rating-modal-close {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            color: #aaa;
+            transition: color .2s;
+        }
+
+            .rating-modal-close:hover {
+                color: #333;
+            }
+
+        .rating-modal-header i {
+            font-size: 40px;
+            color: #faad14;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .rating-modal-header h3 {
+            font-size: 18px;
+            font-weight: 800;
+            margin: 0 0 4px;
+        }
+
+        .rating-modal-header p {
+            font-size: 13px;
+            color: #888;
+            margin: 0 0 20px;
+            max-width: 300px;
+            margin-inline: auto;
+        }
+
+        .star-picker {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .star-btn {
+            font-size: 36px;
+            color: #e0e0e0;
+            cursor: pointer;
+            transition: color .15s, transform .15s;
+        }
+
+            .star-btn.hovered, .star-btn:hover {
+                color: #faad14;
+                transform: scale(1.15);
+            }
+
+            .star-btn.selected {
+                color: #faad14;
+            }
+
+        .rating-label {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 16px;
+            min-height: 20px;
+        }
+
+        .rating-comment-input {
+            width: 100%;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 13px;
+            resize: none;
+            margin-bottom: 16px;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+
+            .rating-comment-input:focus {
+                outline: none;
+                border-color: #7c3aed;
+                box-shadow: 0 0 0 2px rgba(124,58,237,.1);
+            }
+
+        .btn-submit-rating {
+            width: 100%;
+            padding: 11px;
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: opacity .2s;
+        }
+
+            .btn-submit-rating:hover {
+                opacity: .9;
+            }
+
+        @@keyframes fadeInOverlay {
+            from {
+                opacity: 0
+            }
+
+            to {
+                opacity: 1
+            }
+        }
+
+        @@keyframes slideUpModal {
+            from {
+                transform: translateY(30px);
+                opacity: 0
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1
+            }
+        }
+
+        /* ===== INLINE REPLY BOX ===== */
+        .inline-reply-wrapper {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            margin-bottom: 12px;
+            box-sizing: border-box;
+        }
+
+        .reply-input-wrap {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .reply-editor-container {
+            border: 1px solid #d9d9d9;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fff;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+            .reply-editor-container:focus-within {
+                border-color: #1890ff;
+                box-shadow: 0 0 0 2px rgba(24,144,255,0.1);
+            }
+
+        .reply-textarea {
+            padding: 10px 12px;
+            border: none;
+            outline: none;
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 13px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 60px;
+            background: transparent;
+            display: block;
+        }
+
+        .reply-actions-row {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .btn-inline-cancel {
+            background: #fff;
+            border: 1px solid #d6e4ff;
+            color: #1890ff;
+            border-radius: 6px;
+            padding: 6px 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.5px;
+        }
+
+            .btn-inline-cancel:hover {
+                background: #e6f7ff;
+                border-color: #1890ff;
+            }
+
+        .btn-inline-submit {
+            background: #0091ff;
+            border: none;
+            color: #fff;
+            border-radius: 6px;
+            padding: 6px 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            letter-spacing: 0.5px;
+        }
+
+            .btn-inline-submit:hover {
+                background: #007ce0;
+            }
+
+        /* ===== ATTACHMENTS & REACTIONS ===== */
+        .btn-attach {
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            color: #4b5563;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s;
+        }
+        .btn-attach:hover {
+            background: #e5e7eb;
+            color: #1f2937;
+        }
+        .btn-attach i {
+            font-size: 16px;
+        }
+
+        .comment-attachment-preview-container {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        .preview-item {
+            position: relative;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 6px 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #374151;
+            max-width: 250px;
+            min-width: 0;
+            box-sizing: border-box;
+        }
+        .preview-file-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+            min-width: 0;
+        }
+        .preview-item img {
+            max-width: 80px;
+            max-height: 80px;
+            border-radius: 6px;
+            object-fit: cover;
+        }
+        .btn-remove-preview {
+            background: #ef4444;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 0;
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .comment-image-attachment {
+            margin-top: 8px;
+            max-width: 320px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: inline-block;
+        }
+        .comment-image-attachment:hover {
+            transform: scale(1.02);
+        }
+        .comment-image-attachment img {
+            width: auto;
+            height: auto;
+            max-width: 100%;
+            max-height: 320px;
+            display: block;
+        }
+        .comment-file-attachment {
+            margin-top: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 13px;
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+            max-width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
+        }
+        .comment-file-attachment:hover {
+            background: #e5e7eb;
+            color: #1d4ed8;
+            border-color: #d1d5db;
+        }
+        .comment-file-attachment i {
+            font-size: 18px;
+        }
+        .comment-file-attachment .file-name-text {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .comment-reaction-btn {
+            position: relative;
+            background: none;
+            border: none;
+            font-size: 12px;
+            cursor: pointer;
+            padding: 2px 0;
+            transition: color .2s;
+            color: #888;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .comment-reaction-btn:hover {
+            color: #7c3aed;
+        }
+        .comment-reaction-btn.has-reacted {
+            font-weight: 700;
+        }
+        .comment-reaction-btn.has-reacted.like { color: #3b82f6; }
+        .comment-reaction-btn.has-reacted.love { color: #ef4444; }
+        .comment-reaction-btn.has-reacted.haha { color: #f59e0b; }
+        .comment-reaction-btn.has-reacted.wow { color: #ec4899; }
+        .comment-reaction-btn.has-reacted.sad { color: #10b981; }
+        .comment-reaction-btn.has-reacted.angry { color: #f97316; }
+
+        .reaction-picker-popup {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 30px;
+            padding: 6px 10px;
+            display: none;
+            gap: 8px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            z-index: 1000;
+            margin-bottom: 8px;
+            animation: popUpReaction 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .reaction-picker-popup::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 100%;
+            height: 12px;
+            background: transparent;
+        }
+        .comment-reaction-btn:hover .reaction-picker-popup,
+        .reaction-picker-popup:hover {
+            display: flex;
+        }
+        .reaction-emoji-option {
+            font-size: 22px;
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+        .reaction-emoji-option:hover {
+            transform: scale(1.3);
+        }
+        @@keyframes popUpReaction {
+            from {
+                opacity: 0;
+                transform: translateY(10px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .comment-reactions-summary-container {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        .reaction-summary-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 20px;
+            padding: 3px 8px;
+            font-size: 11px;
+            color: #4b5563;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .reaction-summary-pill:hover {
+            background: #e5e7eb;
+            border-color: #d1d5db;
+        }
+        .reaction-summary-pill.active {
+            background: #e0e7ff;
+            border-color: #c7d2fe;
+            color: #4f46e5;
+        }
+
+        .reaction-summary-pill .tooltip-text {
+            visibility: hidden;
+            width: 180px;
+            background-color: #1f2937;
+            color: #fff;
+            text-align: left;
+            border-radius: 6px;
+            padding: 8px 12px;
+            position: absolute;
+            z-index: 1010;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 11px;
+            line-height: 1.4;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            pointer-events: none;
+            white-space: normal;
+        }
+        .reaction-summary-pill .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #1f2937 transparent transparent transparent;
+        }
+        .reaction-summary-pill:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* ===== IMAGE LIGHTBOX OVERLAY ===== */
+        .image-lightbox-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(8px);
+        }
+        .image-lightbox-overlay img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            border-radius: 4px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            animation: zoomInLightbox 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .image-lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 36px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .image-lightbox-close:hover {
+            transform: scale(1.1);
+        }
+        @@keyframes zoomInLightbox {
+            from {
+                transform: scale(0.1);
+                opacity: 10;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        /* ===== HIGHLIGHT COMMENT TARGET ===== */
+        .comment-item.highlight-comment {
+            animation: highlightFade 10s ease-out;
+        }
+        @@keyframes highlightFade {
+            0% {
+                background-color: rgba(124, 58, 237, 0.15); /* Màu tím nhạt khớp với tone active */
+                border-left: 4px solid #7c3aed;
+                margin-left: -4px;
+            }
+            100% {
+                background-color: transparent;
+                border-left: 4px solid transparent;
+                margin-left: 0;
+            }
+        }
+    </style>
+}
+
+<!-- ===== BREADCRUMB ===== -->
+<nav class="lesson-breadcrumb">
+    <a asp-controller="Home" asp-action="Index"><i class="bx bx-home-alt"></i> Trang chủ</a>
+    <i class="bx bx-chevron-right"></i>
+    <span>Khoá học </span>
+    <i class="bx bx-chevron-right"></i>
+    <span id="course_name_lesson" style="font-weight:700; color:#1a1a1a; flex:1;">...</span>
+    <button class="btn-favorite" id="btn-like-lesson" type="button"
+            onclick="toggleLike()" title="Thích bài học này">
+        <i class="bx bx-heart" id="icon-like"></i>
+        <span id="like-count">0</span> Thích
+    </button>
+</nav>
+
+
+<!-- ===== 2-COLUMN LAYOUT ===== -->
+<div class="lesson-layout">
+
+    <!-- ========== CỘT TRÁI ========== -->
+    <div class="lesson-left">
+
+        <!-- Video card -->
+        <div class="lesson-video-card">
+            <div id="lesson_content_header">
+                <!-- JS inject: tiêu đề bài + trạng thái Đã học + iframe video -->
             </div>
         </div>
-    </div>
 
-    <!--Danh sách bài học-->
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header m-0 pb-1">
-                <h5 class="card-title m-0">
-                    <i class='bx bx-list-ul'></i>DANH SÁCH BÀI HỌC
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="demo-inline-spacing">
-                    <ul class="list-group" id="list_group_lesson">
-                        <li class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                            <span class="badge bg-info me-2">1</span>
-                            <a href="#" class="text-dark" style="width: 100%;" onclick="return onClickLesson(3);">content</a>
-                            <input class="form-check-input" type="checkbox" value="">
-                        </li>
+        <!-- Tab bar -->
+        <div class="lesson-tabs-bar">
+            <button class="lesson-tab active" data-target="lesson_content_body">
+                <i class="bx bx-file-blank"></i> Nội dung bài học
+            </button>
+            <button class="lesson-tab" data-target="lesson_content_pdf">
+                <i class="bx bx-file-pdf"></i> Tài liệu PDF
+            </button>
+            <button class="lesson-tab" data-target="download_file_lesson_container">
+                <i class="bx bx-paperclip"></i> File đính kèm
+            </button>
+            <button class="lesson-tab" data-target="tab-comment"
+                    id="tab-btn-comment" onclick="onTabComment()">
+                <i class="bx bx-message-dots"></i>
+                Bình luận
+                @* <span id="comment-badge" class="tab-badge">0</span> *@
 
-                        <li class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-0">
-                            <ul class="nav nav-tabs nav-fill w-100" role="tablist">
-                                <li class="nav-item m-1">
-                                    <button class="btn btn-primary btn-sm w-100" onclick="startExam(@ViewBag.CourseID, 0, 1)">Trắc nghiệm</button>
-                                </li>
-                                <li class="nav-item m-1">
-                                    <button class="btn btn-warning btn-sm w-100 text-dark" onclick="startExam(@ViewBag.CourseID, 0, 2)">Thực hành</button>
-                                </li>
-                                <li class="nav-item m-1">
-                                    <button class="btn btn-info btn-sm w-100 text-dark" onclick="startExam(@ViewBag.CourseID, 0, 3)">Bài tập</button>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
-                </div>
-            </div>
+            </button>
         </div>
-    </div>
-</div>
 
-<div class="row mt-2">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-body text-dark" id="lesson_content_body">
-                @*@Html.Raw(Model.LessonContent)*@
+        <!-- Tab content -->
+        <div class="lesson-tab-content">
+            <!-- Tab 1: Nội dung bài học -->
+            <div id="lesson_content_body" class="tab-pane active">
+                <!-- JS inject HTML nội dung bài học -->
             </div>
 
-            <div class="card-body border-top" id="lesson_content_pdf">
-                @*<h5>
-                        File PDF:
-                        <a href="/FilePDF/@Model.UrlPdf" target="_blank">@Model.UrlPdf</a>
-                    </h5>
-
-                    <iframe src="/FilePDF/@Model.UrlPdf" style="width:100%; height:700px;"></iframe>*@
+            <!-- Tab 2: Tài liệu PDF -->
+            <div id="lesson_content_pdf" class="tab-pane">
+                <!-- JS inject iframe PDF -->
             </div>
 
-            <div class="card-body border-top" id="download_file_lesson_container">
+            <!-- Tab 3: File đính kèm -->
+            <div id="download_file_lesson_container" class="tab-pane">
                 <h5>Download tài liệu đính kèm:</h5>
-                @*<form action="/Lesson/GetBlobDownload" method="get">
-                        <input type="hidden" class="form-control" name="file_name" value="6.pdf">
-                        <button type="submit" class="btn btn-success m-0 p-0"
-                                style="color:#000;background-color:transparent;border-color:transparent;box-shadow:none; text-decoration:underline;">
-                            tải file
-                        </button>
-                    </form>*@
+            </div>
+
+            <!-- Tab 4: Bình luận -->
+            <div id="tab-comment" class="tab-pane">
+
+                <!-- Ô nhập bình luận -->
+                <div class="comment-input-box">
+                    <div class="topbar-avatar">  @ViewBag.AvatarLetter  </div>
+                    @* <img id="comment-avatar-me" class="comment-avatar"
+                         src="https://ui-avatars.com/api/?name=User&size=36&background=e8e8e8&color=7c3aed" alt=""> *@
+                    <div class="comment-input-wrap">
+                        <textarea id="comment-content" class="comment-textarea"
+                                  placeholder="Viết bình luận..." rows="4"
+                                  maxlength="1000"></textarea>
+                        <input type="hidden" id="comment-parent-id" value="">
+                        <input type="hidden" id="comment-reply-to-name" value="">
+                        
+                        <!-- Attachment previews -->
+                        <div id="comment-attachment-preview" class="comment-attachment-preview-container" style="display:none">
+                            <div id="image-preview-wrapper" class="preview-item" style="display:none">
+                                <img id="image-preview" src="" alt="Image preview" />
+                                <button type="button" class="btn-remove-preview" onclick="removeAttachedImage()">&times;</button>
+                            </div>
+                            <div id="file-preview-wrapper" class="preview-item" style="display:none">
+                                <i class="bx bx-paperclip"></i> <span id="file-preview-name" class="preview-file-name">file.txt</span>
+                                <button type="button" class="btn-remove-preview" onclick="removeAttachedFile()">&times;</button>
+                            </div>
+                        </div>
+
+                        <input type="file" id="comment-image-input" accept="image/*" style="display:none" onchange="handleImageSelected(this)" />
+                        <input type="file" id="comment-file-input" style="display:none" onchange="handleFileSelected(this)" />
+
+                        <div class="comment-actions-row">
+                            <div style="display:flex; gap:8px; align-items:center;">
+                                <button type="button" class="btn-attach" onclick="triggerImageUpload()" title="Đính kèm ảnh">
+                                    <i class="bx bx-image"></i> Ảnh
+                                </button>
+                                <button type="button" class="btn-attach" onclick="triggerFileUpload()" title="Đính kèm tài liệu">
+                                    <i class="bx bx-paperclip"></i> Tài liệu
+                                </button>
+                            </div>
+                            <span id="comment-reply-info" class="reply-info" style="display:none"></span>
+                            <button class="btn-cancel-reply" id="btn-cancel-reply"
+                                    onclick="cancelReply()" style="display:none">
+                                ✕ Hủy trả lời
+                            </button>
+                            <button class="btn-submit-comment" onclick="submitComment()">
+                                <i class="bx bx-send"></i> Bình luận
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Danh sách bình luận -->
+                <div id="comment-list"></div>
+
+                <!-- Tải thêm -->
+                <div class="comment-load-more" id="comment-load-more" style="display:none">
+                    <button onclick="loadMoreComments()">
+                        <i class="bx bx-refresh"></i> Tải thêm bình luận
+                    </button>
+                </div>
             </div>
         </div>
+
+    </div><!-- /.lesson-left -->
+    <!-- ========== CỘT PHẢI (SIDEBAR) ========== -->
+    <div class="lesson-right">
+
+        <!-- Tiến độ khoá học -->
+        <div class="lesson-sidebar-card">
+            <div class="sidebar-card-title">
+                <i class="bx bx-line-chart"></i> Tiến độ khoá học
+            </div>
+            <div class="progress-body">
+                <div class="lesson-progress-wrap">
+                    <div class="lesson-progress-bar">
+                        <div class="lesson-progress-fill" id="progress_fill" style="width:0%"></div>
+                    </div>
+                    <span class="lesson-progress-pct" id="progress_pct">0%</span>
+                </div>
+                <p class="progress-desc" id="progress_desc">Bạn đã hoàn thành 0/0 bài học.</p>
+            </div>
+        </div>
+
+        <!-- Danh sách bài học -->
+        <div class="lesson-sidebar-card">
+            <div class="sidebar-card-title">
+                <i class="bx bx-list-ul"></i> Danh sách bài học
+            </div>
+            <ul id="list_group_lesson" class="lesson-list">
+                <!-- JS render danh sách bài học, bao gồm dropdown Bài test nếu có -->
+            </ul>
+        </div>
+
+        <!-- Đánh giá khoá học -->
+        <div class="lesson-sidebar-card" id="card-rating">
+            <div class="sidebar-card-title">
+                <i class="bx bx-star"></i> Đánh giá khoá học
+            </div>
+            <div class="progress-body">
+                <div class="rating-stars-display" id="rating-stars-display">☆☆☆☆☆</div>
+                <p class="rating-avg-text" id="rating-avg-text">Chưa có đánh giá</p>
+                <button class="btn-open-rating" onclick="showRatingModal()">
+                    <i class="bx bx-edit"></i> Đánh giá của tôi
+                </button>
+            </div>
+        </div>
+
+        <!-- Người tham gia khoá học -->
+        <div class="lesson-sidebar-card" id="card-participants">
+            <div class="sidebar-toggle-title" onclick="toggleParticipants()">
+                <i class="bx bx-group"></i> Người tham gia
+                <span id="participant-count" class="tab-badge" style="font-size:11px">0</span>
+                <i class="bx bx-chevron-down toggle-icon" id="icon-participants-toggle"></i>
+            </div>
+            <div id="participants-body" style="display:none">
+                <div id="participants-list" style="max-height:280px; overflow-y:auto; padding:4px 0"></div>
+                <div id="participants-load-more" style="display:none; text-align:center; padding:10px">
+                    <button onclick="loadParticipants()" class="btn-open-rating">
+                        <i class="bx bx-refresh"></i> Xem thêm
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /.lesson-right -->
+
+</div><!-- /.lesson-layout -->
+<!-- ===== MODAL ĐÁNH GIÁ SAO ===== -->
+<div id="modal-rating" class="rating-modal-overlay" style="display:none" onclick="closeRatingModal(event)">
+    <div class="rating-modal-box">
+        <button class="rating-modal-close" onclick="closeRatingModalBtn()" title="Đóng">&times;</button>
+        <div class="rating-modal-header">
+            <h3>Đánh giá khoá học</h3>
+            <p id="rating-course-name">...</p>
+        </div>
+        <div class="star-picker" id="star-picker">
+            <i class="bx bx-star star-btn" data-val="1"></i>
+            <i class="bx bx-star star-btn" data-val="2"></i>
+            <i class="bx bx-star star-btn" data-val="3"></i>
+            <i class="bx bx-star star-btn" data-val="4"></i>
+            <i class="bx bx-star star-btn" data-val="5"></i>
+        </div>
+        <p class="rating-label" id="rating-label">Chọn số sao</p>
+        <textarea id="rating-comment" class="rating-comment-input"
+                  placeholder="Nhận xét (tùy chọn, tối đa 500 ký tự)"
+                  maxlength="500" rows="3"></textarea>
+        <button class="btn-submit-rating" onclick="submitRating()">
+            <i class="bx bx-send"></i> Gửi đánh giá
+        </button>
     </div>
 </div>
 
+<!-- Image Lightbox Modal -->
+<div id="image-lightbox" class="image-lightbox-overlay" onclick="closeLightbox()">
+    <button class="image-lightbox-close" onclick="closeLightbox()">&times;</button>
+    <img id="lightbox-img" src="" alt="Full view" />
+</div>
 
+@section Scripts {
+    <script>
+        var currentUserName = '@Context.Session.GetString("fullname")';
+        var currentEmployeeId = @(Context.Session.GetInt32("employeeid") ?? 0);
+        //var currentUserAvatar = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(currentUserName || 'User') + '&size=36&background=e8e8e8&color=7c3aed';
+        var avatarLetter = currentUserName?.trim() ? currentUserName.charAt(0).toUpperCase(): 'U';
+        var courseId = @ViewBag.CourseID;
+        let isAdmin = @ViewBag.IsAdmin;
+        const urlParams = new URLSearchParams(window.location.search);
+        const catalogId = urlParams.get('catalogId');
+        var PathCommentImages = '@ViewBag.PathCommentImages';
+        var PathCommentFiles = '@ViewBag.PathCommentFiles';
+        // ===== TAB SWITCHING =====
+        var TAB_PANES = ['lesson_content_body', 'lesson_content_pdf', 'download_file_lesson_container', 'tab-comment'];
 
-<script>
-    var courseId = @ViewBag.CourseID;
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const catalogId = urlParams.get('catalogId');
-</script>
-
-
-<script src="~/js/lesson_index.js" asp-append-version="true"></script>
+        document.querySelectorAll('.lesson-tab').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                // Deactivate all tabs
+                document.querySelectorAll('.lesson-tab').forEach(function (b) { b.classList.remove('active'); });
+                // Hide all panes
+                TAB_PANES.forEach(function (id) {
+                    var el = document.getElementById(id);
+                    if (el) el.classList.remove('active');
+                });
+                // Activate clicked tab + target pane
+                btn.classList.add('active');
+                var targetId = btn.getAttribute('data-target');
+                var target = document.getElementById(targetId);
+                if (target) target.classList.add('active');
+            });
+        });
+    </script>
+    <script src="~/js/lesson_index.js" asp-append-version="true"></script>
+}

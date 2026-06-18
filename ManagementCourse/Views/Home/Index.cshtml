@@ -1,127 +1,1774 @@
-﻿@using Microsoft.AspNetCore.Http;
+@using Microsoft.AspNetCore.Http;
 @model List<ManagementCourse.Models.DTO.CourseDTO>;
 @using ManagementCourse.Models.Context;
 
 @{
-    ViewData["Title"] = "Home";
-}
-
-@{
+    Layout = "_LayoutF8";
     RTCCourseContext context = new RTCCourseContext();
+    string fullName = Context.Session.GetString("fullname") ?? "Người dùng";
+    string loginName = Context.Session.GetString("loginname") ?? "";
+    int selectedCatalog = ViewBag.CoureCatalogID ?? 0;
+    string defaultThumbnail = ViewBag.DefaultThumbnail;
+    var listExams = ViewBag.ListExam as List<ManagementCourse.Models.CourseExam> ?? new List<ManagementCourse.Models.CourseExam>();
 }
 
-<style>
-    .swal2-container {
-        z-index: 2000 !important;
-    }
-</style>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RTC – Học tập hiệu quả</title>
+    <meta name="description" content="Nền tảng học tập trực tuyến RTCCourse" />
+    <link rel="icon" type="image/x-icon" href="~/assets/img/favicon/icon-logo-RTC-2023.ico" />
+    <link href="~/assets/css/fontcss2.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/assets/vendor/fonts/boxicons.css" />
 
-<div class="text-center mb-2">
-    <span class="display-5 text-dark text-uppercase" id="title_course">
-        @ViewBag.TitleCourse
-    </span>
-</div>
+    <style>
+        /* *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+                body {
+                    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+                    background: #f5f5f5;
+                    color: #333;
+                } */
+
+        /* ===== TOPBAR ===== */
+        /* .topbar {
+                    position: fixed;
+                    top: 0; left: 0; right: 0;
+                    height: 60px;
+                    background: #fff;
+                    border-bottom: 1px solid #e8e8e8;
+                    display: flex;
+                    align-items: center;
+                    padding: 0 16px;
+                    gap: 16px;
+                    z-index: 1000;
+                    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+                }
+                .topbar-logo {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    text-decoration: none;
+                    flex-shrink: 0;
+                }
+                .topbar-logo img { height: 36px; }
+                .topbar-search {
+                    flex: 1;
+                    max-width: 480px;
+                    margin: 0 auto;
+                    position: relative;
+                }
+                .topbar-search input {
+                    width: 100%;
+                    height: 38px;
+                    border: 1px solid #d9d9d9;
+                    border-radius: 20px;
+                    padding: 0 16px 0 40px;
+                    font-size: 14px;
+                    outline: none;
+                    background: #f5f5f5;
+                    transition: border-color .2s, background .2s;
+                }
+                .topbar-search input:focus {
+                    border-color: #1677ff;
+                    background: #fff;
+                }
+                .topbar-search .search-icon {
+                    position: absolute;
+                    left: 14px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    color: #999;
+                    font-size: 16px;
+                }
+                .topbar-right {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    flex-shrink: 0;
+                }
+                .topbar-user {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: #333;
+                }
+                .topbar-avatar {
+                    width: 34px; height: 34px;
+                    border-radius: 50%;
+                    background: linear-gradient(135deg, #1677ff, #764ba2);
+                    display: flex; align-items: center; justify-content: center;
+                    color: #fff;
+                    font-size: 14px;
+                    font-weight: 700;
+                }
+                .topbar-logout {
+                    font-size: 13px;
+                    color: #999;
+                    text-decoration: none;
+                    padding: 6px 12px;
+                    border: 1px solid #e8e8e8;
+                    border-radius: 6px;
+                    transition: all .2s;
+                }
+                .topbar-logout:hover { border-color: #ff4d4f; color: #ff4d4f; } */
+
+        /* ===== SIDEBAR ===== */
+        /* .sidebar {
+                    position: fixed;
+                    top: 60px; left: 0; bottom: 0;
+                    width: 72px;
+                    background: #fff;
+                    border-right: 1px solid #e8e8e8;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    padding: 16px 0;
+                    gap: 4px;
+                    z-index: 900;
+                    overflow-y: auto;
+                }
+                .sidebar-item {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 4px;
+                    width: 64px;
+                    padding: 10px 4px;
+                    border-radius: 10px;
+                    cursor: pointer;
+                    text-decoration: none;
+                    color: #555;
+                    font-size: 11px;
+                    font-weight: 500;
+                    transition: background .2s, color .2s;
+                    text-align: center;
+                }
+                .sidebar-item:hover, .sidebar-item.active {
+                    background: #e8f4ff;
+                    color: #1677ff;
+                }
+                .sidebar-item i { font-size: 22px; } */
+
+        /* ===== MAIN CONTENT ===== */
+        /* .main-content {
+                    margin-top: 60px;
+                    margin-left: 72px;
+                    min-height: calc(100vh - 60px);
+                    padding: 24px;
+                } */
+
+        /* ===== BANNER ===== */
+        .banner {
+            background: linear-gradient(135deg, #00c6fb 0%, #005bea 100%);
+            border-radius: 16px;
+            padding: 36px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            overflow: hidden;
+            position: relative;
+            min-height: 180px;
+        }
+
+        .banner-content {
+            flex: 1;
+            z-index: 1;
+        }
+
+            .banner-content .banner-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                background: rgba(255,255,255,.2);
+                color: #fff;
+                padding: 4px 12px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 600;
+                margin-bottom: 12px;
+            }
+
+            .banner-content h2 {
+                font-size: 28px;
+                font-weight: 800;
+                color: #fff;
+                margin-bottom: 10px;
+                line-height: 1.3;
+            }
+
+            .banner-content p {
+                font-size: 14px;
+                color: rgba(255,255,255,.85);
+                margin-bottom: 20px;
+                max-width: 480px;
+                line-height: 1.6;
+            }
+
+        .banner-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #fff;
+            color: #005bea;
+            font-weight: 700;
+            font-size: 14px;
+            padding: 10px 22px;
+            border-radius: 25px;
+            text-decoration: none;
+            transition: transform .2s, box-shadow .2s;
+        }
+
+            .banner-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(0,0,0,.15);
+                color: #005bea;
+            }
+
+        .banner-image {
+            flex-shrink: 0;
+            width: 220px;
+            text-align: right;
+            z-index: 1;
+        }
+
+        .banner-illustration {
+            width: 200px;
+            height: 130px;
+            background: rgba(255,255,255,.15);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(6px);
+        }
+
+            .banner-illustration i {
+                font-size: 64px;
+                color: rgba(255,255,255,.7);
+            }
+
+        .banner-blob {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: rgba(255,255,255,.06);
+            border-radius: 50%;
+            right: -80px;
+            top: -80px;
+        }
+
+        /* ===== SECTION HEADER ===== */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+            .section-title span {
+                color: #1677ff;
+            }
+
+        .section-more {
+            font-size: 14px;
+            color: #1677ff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+            .section-more:hover {
+                text-decoration: underline;
+            }
+
+        /* ===== COURSE GRID ===== */
+        .course-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        @@media (max-width: 1280px) {
+            .course-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        @@media (max-width: 992px) {
+            .course-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @@media (max-width: 640px) {
+            .course-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @@media (max-width: 400px) {
+            .course-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ===== COURSE CARD ===== */
+        .course-card {
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform .2s, box-shadow .2s;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #efefef;
+        }
+
+            .course-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 12px 32px rgba(0,0,0,.1);
+                color: inherit;
+                text-decoration: none;
+            }
+
+            .course-card.locked {
+                cursor: not-allowed;
+                opacity: .75;
+            }
+
+                .course-card.locked:hover {
+                    transform: none;
+                    box-shadow: none;
+                }
+
+        .course-thumbnail {
+            width: 100%;
+            aspect-ratio: 16/9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .course-thumbnail i {
+                font-size: 48px;
+                color: rgba(255,255,255,.6);
+            }
+
+            .course-thumbnail .thumb-tag {
+                position: absolute;
+                top: 8px;
+                right: 8px;
+                background: rgba(0,0,0,.45);
+                color: #fff;
+                font-size: 11px;
+                padding: 2px 8px;
+                border-radius: 4px;
+            }
+
+        /* Gradient màu theo index */
+        .thumb-0 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .thumb-1 {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .thumb-2 {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .thumb-3 {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .thumb-4 {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .thumb-5 {
+            background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+        }
+
+        .thumb-6 {
+            background: linear-gradient(135deg, #fccb90 0%, #d57eeb 100%);
+        }
+
+        .thumb-7 {
+            background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+        }
+
+        .course-info {
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .course-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a1a1a;
+            line-height: 1.4;
+            margin-bottom: 4px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .course-instructor {
+            font-size: 12px;
+            color: #777;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .course-rating {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 6px;
+        }
+
+        .stars-container {
+            transform: translateY(-3px);
+        }
+
+        .stars {
+            color: #f5a623;
+            font-size: 12px;
+        }
+
+        .rating-val {
+            font-size: 12px;
+            font-weight: 700;
+            color: #f5a623;
+        }
+
+        .rating-count {
+            font-size: 11px;
+            color: #999;
+        }
+
+        .course-price {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1677ff;
+            margin-bottom: 8px;
+        }
+
+            .course-price.free {
+                color: #52c41a;
+            }
+
+        .course-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 11px;
+            color: #999;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 8px;
+            margin-top: 4px;
+        }
+
+            .course-meta span {
+                display: flex;
+                align-items: center;
+                gap: 3px;
+            }
+
+        /* Progress bar (nếu đang học) */
+        .course-progress {
+            margin-top: auto;
+            padding-top: 8px;
+        }
+
+        .progress-bar-wrap {
+            height: 4px;
+            background: #e8e8e8;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #1677ff, #52c3ff);
+            border-radius: 4px;
+            transition: width .4s;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #999;
+            margin-top: 3px;
+        }
+
+        /* Locked overlay */
+        .lock-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .lock-overlay i {
+                font-size: 28px;
+                color: #fff;
+            }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 64px 24px;
+            color: #999;
+        }
+
+            .empty-state i {
+                font-size: 64px;
+                color: #d9d9d9;
+                margin-bottom: 16px;
+            }
+
+            .empty-state p {
+                font-size: 16px;
+            }
+
+        /* Catalog filter tabs */
+        .catalog-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .catalog-tab {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            border: 1px solid #e0e0e0;
+            color: #555;
+            background: #fff;
+            transition: all .2s;
+        }
+
+            .catalog-tab:hover {
+                border-color: #1677ff;
+                color: #1677ff;
+            }
+
+            .catalog-tab.active {
+                background: #1677ff;
+                color: #fff;
+                border-color: #1677ff;
+            }
+
+        /* Stats bar */
+        .stats-bar {
+            display: flex;
+            gap: 24px;
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            border: 1px solid #efefef;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 22px;
+            font-weight: 800;
+            color: #1677ff;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #999;
+            margin-top: 2px;
+        }
+
+        /* ===== MY COURSES — grouped display ===== */
+        .my-courses-section {
+            margin-bottom: 8px;
+        }
+
+        .catalog-type-block {
+            margin-bottom: 36px;
+        }
+
+        .catalog-type-header {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a1a2e;
+            padding: 10px 18px;
+            background: linear-gradient(135deg, #eef2ff 0%, #e8f4ff 100%);
+            border-left: 4px solid #4f46e5;
+            border-radius: 0 10px 10px 0;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+            .catalog-type-header i {
+                font-size: 18px;
+                color: #4f46e5;
+            }
+
+        .catalog-sub-block {
+            margin-bottom: 24px;
+        }
+
+        .catalog-sub-header {
+            font-size: 13px;
+            font-weight: 700;
+            color: #4f46e5;
+            padding: 5px 0 8px;
+            margin-bottom: 12px;
+            border-bottom: 2px solid #e8eaf6;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+        }
+
+            .catalog-sub-header i {
+                font-size: 15px;
+            }
+
+        /* ===== SHOW MORE / THU GỬN ===== */
+        .show-more-container {
+            display: none;
+            justify-content: center;
+            margin-top: 16px;
+            margin-bottom: 8px;
+        }
+
+        .show-more-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 28px;
+            border: 2px solid #4f46e5;
+            border-radius: 24px;
+            color: #4f46e5;
+            background: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+            box-shadow: 0 2px 8px rgba(79,70,229,.1);
+        }
+
+            .show-more-btn:hover {
+                background: #4f46e5;
+                color: #fff;
+                box-shadow: 0 4px 16px rgba(79,70,229,.25);
+            }
+
+            .show-more-btn i {
+                font-size: 16px;
+            }
+
+        /* ===== SECTION BOX ===== */
+        .section-box {
+            background: #fff;
+            border: 1px solid #e8e8e8;
+            border-radius: 12px;
+            padding: 20px 20px 8px;
+            margin-bottom: 24px;
+        }
+
+        /* ===== THUMBNAIL VỚI ẢNH ===== */
+        .course-thumbnail {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            background-color: #0b2f73;
+        }
+
+            .course-thumbnail.thumb-img {
+                background-repeat: no-repeat;
+                background-position: center;
+                background-size: contain;
+                background-color: #0b2f73;
+            }
+
+                .course-thumbnail.thumb-img::before {
+                    content: "";
+                    position: absolute;
+                    inset: 0;
+                    background: inherit;
+                    background-size: cover;
+                    background-position: center;
+                    filter: blur(14px);
+                    transform: scale(1.08);
+                    opacity: 0.45;
+                    z-index: 0;
+                }
+
+                .course-thumbnail.thumb-img::after {
+                    content: "";
+                    position: absolute;
+                    inset: 0;
+                    background: inherit;
+                    background-size: contain;
+                    background-repeat: no-repeat;
+                    background-position: center;
+                    z-index: 1;
+                }
+
+                .course-thumbnail.thumb-img > * {
+                    position: relative;
+                    z-index: 2;
+                }
+
+                .course-thumbnail.thumb-img i.bx-play-circle {
+                    display: none;
+                }
+
+        /* ===== TRẠNG THÁI ĐÁNH GIÁ & ĐIỂM THI ===== */
+        .course-evaluate-status {
+            margin: 6px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .badge-status {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .status-pass {
+            background-color: rgba(40, 199, 111, 0.12);
+            color: #28c76f;
+        }
+
+        .status-fail {
+            background-color: rgba(255, 76, 81, 0.12);
+            color: #ff4c51;
+        }
+
+        .course-exams-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed #efefef;
+        }
+
+        .exam-score-chip {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+        }
+
+            .exam-score-chip i {
+                font-size: 12px;
+            }
+
+            .exam-score-chip.quiz-chip {
+                background-color: rgba(102, 108, 255, 0.12);
+                color: #666cff;
+            }
+
+            .exam-score-chip.practice-chip {
+                background-color: rgba(253, 172, 52, 0.12);
+                color: #fdac34;
+            }
+
+            .exam-score-chip.exercise-chip {
+                background-color: rgba(0, 207, 232, 0.12);
+                color: #00cfe8;
+            }
+
+            .exam-score-chip:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            }
+
+        /* Badge đánh giá nằm bên phải tên giảng viên */
+        .course-instructor {
+            justify-content: space-between;
+        }
+        .badge-status {
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+
+<body>
 
 
-<div class="row m-0" id="list_course_items">
-    @foreach (var item in Model)
-    {
-        @*if (userGroupID <= 0)
-        {
-            <div class="text-center mb-0">
-                <span class="display-6 text-dark text-uppercase">
-                    Bạn không có quyền xem khoá học!
-                </span>
+    <!-- BANNER -->
+    <div class="banner">
+        <div class="banner-blob"></div>
+        <div class="banner-content">
+            <div class="banner-badge">
+                <i class="bx bx-trophy"></i> Nền tảng đào tạo nội bộ
             </div>
-            return;
-        }*@
+            <h2>Học tập — Phát triển — Thành công</h2>
+            <p>Khám phá các khoá học được thiết kế riêng cho đội ngũ RTech. Nâng cao kỹ năng và phát triển sự nghiệp của bạn.</p>
+            <a asp-controller="Home" asp-action="Index" class="banner-btn">
+                Bắt đầu học ngay
+            </a>
+        </div>
+        <div class="banner-image">
+            <div class="banner-illustration">
+                <i class="bx bx-book-open"></i>
+            </div>
+        </div>
+    </div>
 
-        <div class="card mb-3 @(item.Status == 0 ? "bg-secondary":"")">
-            <div class="card-body p-2">
-                <div class="row">
-                    <div class="col-sm-9">
-                        <p class="m-0 fw-bold @(item.DeleteFlag ? "text-success":"text-danger")">@item.DeleteFlagText</p>
-                        <h5 class="card-title m-0 text-uppercase fw-bold">
-                            @*<a href="/Lesson/Index?courseId=@item.ID&catalogId=@item.CatalogID" class="px-0">@item.NameCourse</a>*@
-                            @if (item.Status == 1)
-                            {
-                                <a asp-controller="Lesson"
-                                   asp-action="Index"
-                                   asp-route-courseId="@item.ID"
-                                   asp-route-catalogId="@item.CatalogID" class="px-0">@item.NameCourse</a>
-                            }
-                            else
-                            {
-                                @item.NameCourse
-                            }
-                        </h5>
-                        <p class="m-0 text-dark">@item.Instructor</p>
-                    </div>
+    <!-- STATS -->
+    @{
+        int totalCourses = Model?.Count ?? 0;
+        int completedCourses = Model?.Count(c => c.TotalHistoryLession >= c.NumberLesson && c.NumberLesson > 0) ?? 0;
+        int inProgressCourses = Model?.Count(c => c.TotalHistoryLession > 0 && c.TotalHistoryLession < c.NumberLesson) ?? 0;
+    }
+    <style>
+        .custom-stats-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px 32px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            margin-bottom: 32px;
+            border: 1px solid #f0f0f0;
+        }
 
-                    <div class="col-sm-3">
-                        <div class="demo-inline-spacing m-0">
-                            <ul class="list-group m-0">
-                                <li class="list-group-item d-flex justify-content-start align-items-center p-0 border-0">
-                                    <p class="m-0 text-dark">Bài học: <span>@item.TotalHistoryLession / @item.NumberLesson</span></p>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-start align-items-center p-0 border-0">
-                                    <p class="m-0 text-dark">Thời gian học (ngày): <span>@item.TotalTimeLearned.ToString("n2") / @item.LeadTime.ToString("n2")</span></p>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-start align-items-center p-0 border-0">
-                                    <p class="m-0 pe-1 text-dark">Điểm thi:</p>
-                                    @foreach (var c in context.CourseExams.Where(x => x.CourseId == item.ID))
-                                    {
-                                        if (c.ExamType == 1)
-                                        {
-                                            <button type="button" class="btn btn-primary btn-sm shadow-none ms-1" title="Trắc nghiệm">
-                                                @item.QuizPoints / @item.GoalMultiChoice
-                                            </button>
+        .custom-stat-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex: 1;
+            position: relative;
+        }
+
+        .custom-stat-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 40px;
+            width: 1px;
+            background-color: #f0f0f0;
+        }
+
+        /* Spacer to push content a bit from the border */
+        .custom-stat-item:not(:first-child) {
+            padding-left: 32px;
+        }
+
+        .stat-icon-wrapper {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        /* Colors based on image */
+        .icon-bg-blue { background-color: #f0f7ff; color: #1677ff; }
+        .icon-bg-green { background-color: #f6ffed; color: #52c41a; }
+        .icon-bg-orange { background-color: #fff7e6; color: #fa8c16; }
+        .icon-bg-purple { background-color: #f9f0ff; color: #722ed1; }
+
+        .custom-stat-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .custom-stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 4px;
+        }
+
+        .val-blue { color: #1677ff; }
+        .val-green { color: #52c41a; }
+        .val-orange { color: #fa8c16; }
+        .val-purple { color: #722ed1; }
+
+        .custom-stat-label {
+            font-size: 13px;
+            color: #8c8c8c;
+            font-weight: 500;
+        }
+    </style>
+
+    <div class="custom-stats-bar">
+        <div class="custom-stat-item">
+            <div class="stat-icon-wrapper icon-bg-blue">
+                <i class="bx bxs-graduation" style="font-size: 35px;"></i>
+            </div>
+            <div class="custom-stat-info">
+                <div class="custom-stat-value val-blue">@totalCourses</div>
+                <div class="custom-stat-label">Khóa học</div>
+            </div>
+        </div>
+        <div class="custom-stat-item">
+            <div class="stat-icon-wrapper icon-bg-green">
+                <i class="bx bxs-book-open" style="font-size: 35px;"></i>
+            </div>
+            <div class="custom-stat-info">
+                <div class="custom-stat-value val-green">@inProgressCourses</div>
+                <div class="custom-stat-label">Đang học</div>
+            </div>
+        </div>
+        <div class="custom-stat-item">
+            <div class="stat-icon-wrapper icon-bg-orange">
+                <i class="bx bx-line-chart" style="font-size: 35px;"></i>
+            </div>
+            <div class="custom-stat-info">
+                <div class="custom-stat-value val-orange">@completedCourses</div>
+                <div class="custom-stat-label" >Hoàn thành</div>
+            </div>
+        </div>
+        <div class="custom-stat-item">
+            <div class="stat-icon-wrapper icon-bg-purple">
+                <i class="bx bxs-trophy" style="font-size: 35px;"></i>
+            </div>
+            <div class="custom-stat-info">
+                <div class="custom-stat-value val-purple">@(Model?.Sum(c => c.NumberLesson) ?? 0)</div>
+                <div class="custom-stat-label">Tổng bài học</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- COURSE SECTION -->
+    @{
+        var interestedIds = ViewBag.InterestedCatalogTypeIds as List<int> ?? new List<int>();
+        int courseCatalogID = ViewBag.CoureCatalogID ?? 0;
+        bool isGroupedView = courseCatalogID == 0 && interestedIds.Count > 0;
+        var displayModel = isGroupedView
+        ? Model?.Where(c => interestedIds.Contains(c.CatalogType)).ToList()
+        : Model;
+        var remainingModel = isGroupedView
+        ? Model?.Where(c => !interestedIds.Contains(c.CatalogType)).ToList()
+        : new List<ManagementCourse.Models.DTO.CourseDTO>();
+    }
+
+    @if (displayModel == null || !displayModel.Any())
+    {
+        <div class="section-header">
+            <h2 class="section-title"><span>Dành cho bạn</span></h2>
+        </div>
+        <div class="empty-state">
+            <div><i class="bx bx-book-content"></i></div>
+            <p>Chưa có khoá học nào. Vui lòng liên hệ quản trị viên.</p>
+        </div>
+    }
+    else if (isGroupedView)
+    {
+        <!-- Hiển thị nhóm: Loại danh mục → Danh mục → Course cards -->
+        <div class="section-box">
+            <div class="section-header">
+                <h2 class="section-title">
+                    @if (!string.IsNullOrEmpty(ViewBag.TitleCourse as string))
+                    {
+                        @ViewBag.TitleCourse
+                    }
+                    else
+                    {
+                        <span>Dành cho bạn</span>
+                    }
+                </h2>
+            </div>
+            <div class="my-courses-section">
+                @foreach (var typeGroup in displayModel.GroupBy(c => c.CatalogType).OrderBy(g => g.Key))
+                {
+                    <div class="catalog-type-block">
+
+
+                        @foreach (var catalogGroup in typeGroup.GroupBy(c => c.CatalogID).OrderBy(g => g.Key))
+                        {
+                            <div class="catalog-sub-block">
+
+                                <div class="catalog-type-header">
+
+
+                                    <span style="color:#1677ff">Khoá học @(catalogGroup.First().NameCourseCatalog ?? $"Danh mục #{catalogGroup.Key}")</span>
+                                </div>
+                                <div class="course-grid-wrapper">
+                                    <div class="course-grid">
+                                        @{
+                                            int idxG = 0;
                                         }
-                                        else if (c.ExamType == 2)
+                                        @foreach (var item in catalogGroup)
                                         {
-                                            <button class="btn btn-warning  btn-sm text-dark shadow-none ms-1" title="Thực hành">
-                                                @item.PracticePoints / @item.GoalPractice
+                                            string thumbClassG = $"thumb-{idxG % 8}";
+                                            bool canAccessG = item.Status == 1;
+                                            int progressPctG = item.NumberLesson > 0
+                                            ? (int)Math.Round((double)item.TotalHistoryLession / item.NumberLesson * 100)
+                                            : 0;
+
+                                            if (canAccessG)
+                                            {
+                                                <a asp-controller="Lesson" asp-action="Index"
+                                                   asp-route-courseId="@item.ID"
+                                                   asp-route-catalogId="@item.CatalogID"
+                                                   class="course-card"
+                                                   title="@item.NameCourse">
+                                                    <div class="course-thumbnail @(string.IsNullOrEmpty(item.ThumbnailUrl) ? thumbClassG : "thumb-img")"
+                                                         @(string.IsNullOrEmpty(item.ThumbnailUrl) ? Html.Raw($"style=\"background-image:url('{defaultThumbnail}')\"") : Html.Raw($"style=\"background-image:url('{item.ThumbnailUrl}')\""))>
+                                                    </div>
+                                                    <div class="course-info">
+                                                        <div class="course-name">@item.NameCourse</div>
+                                                        <div class="course-instructor">
+                                                            @if (!string.IsNullOrEmpty(item.Instructor))
+                                                            {
+                                                                <span><i class="bx bx-user"></i> @item.Instructor</span>
+                                                            }
+                                                            @if (item.Evaluate == 1)
+                                                            {
+                                                                <span class="badge-status status-pass">
+                                                                    <i class="bx bx-check-circle"></i> Đạt
+                                                                </span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="badge-status status-fail">
+                                                                    <i class="bx bx-error-circle"></i> @item.EvaluateText
+                                                                </span>
+                                                            }
+                                                        </div>
+                                                        <div class="course-rating" style="display: flex; align-items: center; gap: 12px; font-size: 13px; color: #666; white-space: nowrap;">
+                                                            <span style="display: flex; align-items: center; gap: 4px; font-weight: 600;" title="Đánh giá: @item.AverageRating.ToString("0.0") sao">
+                                                                <span class="stars-container" style="position: relative; display: inline-block; font-size: 14px; color: #e0e0e0; letter-spacing: 2px;">
+                                                                    <i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i>
+                                                                    <span class="stars-fill" style="position: absolute; top: 0; left: 0; overflow: hidden; white-space: nowrap; color: #faad14; width: @((item.AverageRating * 20).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))%;">
+                                                                        <i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i>
+                                                                    </span>
+                                                                </span>
+                                                                <span style="color: #faad14;">@item.AverageRating.ToString("0.0")</span>
+                                                                <span style="font-weight: 400; color: #888;">(@item.TotalRatingsText)</span>
+                                                            </span>
+                                                            <span style="display: flex; align-items: center; gap: 4px;" title="Lượt thích">
+                                                                <i class="bx bxs-heart" style="color: #ff4d4f;"></i> @item.TotalLikesText
+                                                            </span>
+                                                            <span style="display: flex; align-items: center; gap: 4px;" title="Lượt tham gia">
+                                                                <i class="bx bxs-group" style="color: #1890ff;"></i> @item.TotalParticipantsText
+                                                            </span>
+                                                        </div>
+                                                        <div class="course-meta">
+                                                            <span><i class="bx bx-book"></i> @item.TotalHistoryLession/@item.NumberLesson bài</span>
+                                                            @if (item.LeadTime > 0)
+                                                            {
+                                                                <span><i class="bx bx-time"></i> @item.LeadTime ngày</span>
+                                                            }
+                                                        </div>
+                                                        @{
+                                                            var courseExamsG = listExams.Where(x => x.CourseId == item.ID).ToList();
+                                                        }
+                                                        @if (courseExamsG.Any())
+                                                        {
+                                                            <div class="course-exams-container">
+                                                                @foreach (var exam in courseExamsG)
+                                                                {
+                                                                    if (exam.ExamType == 1)
+                                                                    {
+                                                                        <div class="exam-score-chip quiz-chip" title="Trắc nghiệm: @item.QuizPoints.ToString("0.##")/@item.GoalMultiChoice.ToString("0.##")">
+                                                                            <i class="bx bx-list-check"></i>
+                                                                            <span>TN: @item.QuizPoints.ToString("0.##")/@item.GoalMultiChoice.ToString("0.##")</span>
+                                                                        </div>
+                                                                    }
+                                                                    else if (exam.ExamType == 2)
+                                                                    {
+                                                                        <div class="exam-score-chip practice-chip" title="Thực hành: @item.PracticePoints.ToString("0.##")/@item.GoalPractice.ToString("0.##")">
+                                                                            <i class="bx bx-desktop"></i>
+                                                                            <span>TH: @item.PracticePoints.ToString("0.##")/@item.GoalPractice.ToString("0.##")</span>
+                                                                        </div>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <div class="exam-score-chip exercise-chip" title="Bài tập: @item.ExcercisePoints.ToString("0.##")/@item.GoalExercise.ToString("0.##")">
+                                                                            <i class="bx bx-edit"></i>
+                                                                            <span>BT: @item.ExcercisePoints.ToString("0.##")/@item.GoalExercise.ToString("0.##")</span>
+                                                                        </div>
+                                                                    }
+                                                                }
+                                                            </div>
+                                                        }
+                                                        @if (item.TotalHistoryLession > 0)
+                                                        {
+                                                            <div class="course-progress">
+                                                                <div class="progress-bar-wrap">
+                                                                    <div class="progress-bar-fill" style="width:@progressPctG%"></div>
+                                                                </div>
+                                                                <div class="progress-label">
+                                                                    <span>Tiến độ</span>
+                                                                    <span>@progressPctG%</span>
+                                                                </div>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <div class="course-card locked" title="Vui lòng hoàn thành các khoá học trước đó để mở khoá.">
+                                                    <div class="course-thumbnail @(string.IsNullOrEmpty(item.ThumbnailUrl) ? thumbClassG : "thumb-img")"
+                                                         @(string.IsNullOrEmpty(item.ThumbnailUrl) ? Html.Raw($"style=\"background-image:url('{defaultThumbnail}')\"") : Html.Raw($"style=\"background-image:url('{item.ThumbnailUrl}')\""))>
+
+                                                        <div class="lock-overlay">
+                                                            <i class="bx bx-lock-alt"></i>
+                                                        </div>
+
+                                                    </div>
+                                                    <div class="course-info">
+                                                        <div class="course-name">@item.NameCourse</div>
+                                                        @if (!string.IsNullOrEmpty(item.Instructor))
+                                                        {
+                                                            <div class="course-instructor">
+                                                                <span><i class="bx bx-user"></i> @item.Instructor</span>
+                                                            </div>
+                                                        }
+                                                        <div class="course-rating" style="display: flex; align-items: center; gap: 12px; font-size: 13px; color: #666; white-space: nowrap;">
+                                                            <span style="display: flex; align-items: center; gap: 4px; font-weight: 600;" title="Đánh giá: @item.AverageRating.ToString("0.0") sao">
+                                                                <span class="stars-container" style="position: relative; display: inline-block; font-size: 14px; color: #e0e0e0; letter-spacing: 2px;">
+                                                                    <i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i>
+                                                                    <span class="stars-fill" style="position: absolute; top: 0; left: 0; overflow: hidden; white-space: nowrap; color: #faad14; width: @((item.AverageRating * 20).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))%;">
+                                                                        <i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i>
+                                                                    </span>
+                                                                </span>
+                                                                <span style="color: #faad14;">@item.AverageRating.ToString("0.0")</span>
+                                                                <span style="font-weight: 400; color: #888;">(@item.TotalRatingsText)</span>
+                                                            </span>
+                                                            <span style="display: flex; align-items: center; gap: 4px;" title="Lượt thích">
+                                                                <i class="bx bxs-heart" style="color: #ff4d4f;"></i> @item.TotalLikesText
+                                                            </span>
+                                                            <span style="display: flex; align-items: center; gap: 4px;" title="Lượt tham gia">
+                                                                <i class="bx bxs-group" style="color: #1890ff;"></i> @item.TotalParticipantsText
+                                                            </span>
+                                                        </div>
+                                                        <div class="course-price free">Miễn phí</div>
+                                                        <div class="course-meta">
+                                                            <span><i class="bx bx-book"></i> @item.NumberLesson bài</span>
+                                                            @if (item.LeadTime > 0)
+                                                            {
+                                                                <span><i class="bx bx-time"></i> @item.LeadTime ngày</span>
+                                                            }
+                                                        </div>
+                                                        <div style="font-size:12px; color:#ff4d4f; margin-top:8px; display:flex; align-items:center; gap:4px;">
+                                                            <i class="bx bx-lock"></i> Chưa mở khoá
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                            idxG++;
+                                        }
+                                    </div>
+                                    <div class="show-more-container">
+                                        <button class="show-more-btn">
+                                            <i class="bx bx-chevron-down"></i>
+                                            Xem thêm <span class="more-count"></span> khoá học
+                                        </button>
+                                    </div>
+                                </div><!-- /.course-grid-wrapper -->
+                            </div>
+                
+                            <!-- /.catalog-sub-block -->
+                        }
+                    </div>
+                }
+            </div><!-- /.my-courses-section -->
+        </div>
+
+        <!-- /.section-box -->
+        @if (remainingModel != null && remainingModel.Any())
+        {
+            <div class="section-box">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <span>Khoá học khác</span>
+                    </h2>
+                </div>
+                <div class="my-courses-section">
+                    @foreach (var typeGroupR in remainingModel.GroupBy(c => c.CatalogType).OrderBy(g => g.Key))
+                    {
+                        <div class="catalog-type-block">
+                            @foreach (var catalogGroupR in typeGroupR.GroupBy(c => c.CatalogID).OrderBy(g => g.Key))
+                            {
+                                <div class="catalog-sub-block">
+                                    <div class="catalog-type-header">
+                                        <span style="color:#1677ff"> Khoá học @(catalogGroupR.First().NameCourseCatalog ?? $"Danh mục #{catalogGroupR.Key}")</span>
+                                    </div>
+                                    <div class="course-grid-wrapper">
+                                        <div class="course-grid">
+                                            @{
+                                                int idxRG = 0;
+                                            }
+                                            @foreach (var item in catalogGroupR)
+                                            {
+                                                string thumbClassRG = $"thumb-{idxRG % 8}";
+                                                bool canAccessRG = item.Status == 1;
+                                                int progressPctRG = item.NumberLesson > 0
+                                                ? (int)Math.Round((double)item.TotalHistoryLession / item.NumberLesson * 100)
+                                                : 0;
+
+                                                if (canAccessRG)
+                                                {
+                                                    <a asp-controller="Lesson" asp-action="Index"
+                                                       asp-route-courseId="@item.ID"
+                                                       asp-route-catalogId="@item.CatalogID"
+                                                       class="course-card"
+                                                       title="@item.NameCourse">
+                                                        <div class="course-thumbnail @(string.IsNullOrEmpty(item.ThumbnailUrl) ? thumbClassRG : "thumb-img")"
+                                                             @(string.IsNullOrEmpty(item.ThumbnailUrl) ? Html.Raw($"style=\"background-image:url('{defaultThumbnail}')\"") : Html.Raw($"style=\"background-image:url('{item.ThumbnailUrl}')\""))>
+                                                        </div>
+                                                        <div class="course-info">
+                                                            <div class="course-name">@item.NameCourse</div>
+                                                            <div class="course-instructor">
+                                                                @if (!string.IsNullOrEmpty(item.Instructor))
+                                                                {
+                                                                    <span><i class="bx bx-user"></i> @item.Instructor</span>
+                                                                }
+                                                                @if (item.Evaluate == 1)
+                                                                {
+                                                                    <span class="badge-status status-pass">
+                                                                        <i class="bx bx-check-circle"></i> Đạt
+                                                                    </span>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <span class="badge-status status-fail">
+                                                                        <i class="bx bx-error-circle"></i> @item.EvaluateText
+                                                                    </span>
+                                                                }
+                                                            </div>
+                                                            <div class="course-rating" style="display: flex; align-items: center; gap: 12px; font-size: 13px; color: #666; white-space: nowrap;">
+                                                                <span style="display: flex; align-items: center; gap: 4px; font-weight: 600;" title="Đánh giá: @item.AverageRating.ToString("0.0") sao">
+                                                                    <span class="stars-container" style="position: relative; display: inline-block; font-size: 14px; color: #e0e0e0; letter-spacing: 2px;">
+                                                                        <i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i>
+                                                                        <span class="stars-fill" style="position: absolute; top: 0; left: 0; overflow: hidden; white-space: nowrap; color: #faad14; width: @((item.AverageRating * 20).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))%;">
+                                                                            <i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i>
+                                                                        </span>
+                                                                    </span>
+                                                                    <span style="color: #faad14;">@item.AverageRating.ToString("0.0")</span>
+                                                                    <span style="font-weight: 400; color: #888;">(@item.TotalRatingsText)</span>
+                                                                </span>
+                                                                <span style="display: flex; align-items: center; gap: 4px;" title="Lượt thích">
+                                                                    <i class="bx bxs-heart" style="color: #ff4d4f;"></i> @item.TotalLikesText
+                                                                </span>
+                                                                <span style="display: flex; align-items: center; gap: 4px;" title="Lượt tham gia">
+                                                                    <i class="bx bxs-group" style="color: #1890ff;"></i> @item.TotalParticipantsText
+                                                                </span>
+                                                            </div>
+                                                            <div class="course-meta">
+                                                                <span><i class="bx bx-book"></i> @item.TotalHistoryLession/@item.NumberLesson bài</span>
+                                                                @if (item.LeadTime > 0)
+                                                                {
+                                                                    <span><i class="bx bx-time"></i> @item.LeadTime ngày</span>
+                                                                }
+                                                            </div>
+                                                            @{
+                                                                var courseExamsRG = listExams.Where(x => x.CourseId == item.ID).ToList();
+                                                            }
+                                                            @if (courseExamsRG.Any())
+                                                            {
+                                                                <div class="course-exams-container">
+                                                                    @foreach (var exam in courseExamsRG)
+                                                                    {
+                                                                        if (exam.ExamType == 1)
+                                                                        {
+                                                                            <div class="exam-score-chip quiz-chip" title="Trắc nghiệm:  @item.QuizPoints.ToString("0.##")/@item.GoalMultiChoice.ToString("0.##")">
+                                                                                <i class="bx bx-list-check"></i>
+                                                                                <span>TN: @item.QuizPoints.ToString("0.##")/@item.GoalMultiChoice.ToString("0.##")</span>
+                                                                            </div>
+                                                                        }
+                                                                        else if (exam.ExamType == 2)
+                                                                        {
+                                                                            <div class="exam-score-chip practice-chip" title="Thực hành:  @item.PracticePoints.ToString("0.##")/@item.GoalPractice.ToString("0.##")">
+                                                                                <i class="bx bx-desktop"></i>
+                                                                                <span>TH: @item.PracticePoints.ToString("0.##")/@item.GoalPractice.ToString("0.##")</span>
+                                                                            </div>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <div class="exam-score-chip exercise-chip" title="Bài tập: @item.ExcercisePoints.ToString("0.##")/@item.GoalExercise.ToString("0.##")">
+                                                                                <i class="bx bx-edit"></i>
+                                                                                <span>BT: @item.ExcercisePoints.ToString("0.##")/@item.GoalExercise.ToString("0.##")</span>
+                                                                            </div>
+                                                                        }
+                                                                    }
+                                                                </div>
+                                                            }
+                                                            @if (item.TotalHistoryLession > 0)
+                                                            {
+                                                                <div class="course-progress">
+                                                                    <div class="progress-bar-wrap">
+                                                                        <div class="progress-bar-fill" style="width:@progressPctRG%"></div>
+                                                                    </div>
+                                                                    <div class="progress-label">
+                                                                        <span>Tiến độ</span>
+                                                                        <span>@progressPctRG%</span>
+                                                                    </div>
+                                                                </div>
+                                                            }
+                                                        </div>
+                                                    </a>
+                                                }
+                                                else
+                                                {
+                                                    <div class="course-card locked" title="Cần hoàn thành bài học trước đó để mở khoá.">
+                                                        <div class="course-thumbnail @(string.IsNullOrEmpty(item.ThumbnailUrl) ? thumbClassRG : "thumb-img")"
+                                                             @(string.IsNullOrEmpty(item.ThumbnailUrl) ? Html.Raw($"style=\"background-image:url('{defaultThumbnail}')\"") : Html.Raw($"style=\"background-image:url('{item.ThumbnailUrl}')\""))>
+
+                                                            <div class="lock-overlay">
+                                                                <i class="bx bx-lock-alt"></i>
+                                                            </div>
+
+                                                        </div>
+                                                        <div class="course-info">
+                                                            <div class="course-name">@item.NameCourse</div>
+                                                            @if (!string.IsNullOrEmpty(item.Instructor))
+                                                            {
+                                                                <div class="course-instructor">
+                                                                    <span><i class="bx bx-user"></i> @item.Instructor</span>
+                                                                </div>
+                                                            }
+                                                            <div class="course-rating" style="display: flex; align-items: center; gap: 12px; font-size: 13px; color: #666; white-space: nowrap;">
+                                                                <span style="display: flex; align-items: center; gap: 4px; font-weight: 600;" title="Đánh giá: @item.AverageRating.ToString("0.0") sao">
+                                                                    <span class="stars-container" style="position: relative; display: inline-block; font-size: 14px; color: #e0e0e0; letter-spacing: 2px;">
+                                                                        <i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i>
+                                                                        <span class="stars-fill" style="position: absolute; top: 0; left: 0; overflow: hidden; white-space: nowrap; color: #faad14; width: @((item.AverageRating * 20).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))%;">
+                                                                            <i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i>
+                                                                        </span>
+                                                                    </span>
+                                                                    <span style="color: #faad14;">@item.AverageRating.ToString("0.0")</span>
+                                                                    <span style="font-weight: 400; color: #888;">(@item.TotalRatingsText)</span>
+                                                                </span>
+                                                                <span style="display: flex; align-items: center; gap: 4px;" title="Lượt thích">
+                                                                    <i class="bx bxs-heart" style="color: #ff4d4f;"></i> @item.TotalLikesText
+                                                                </span>
+                                                                <span style="display: flex; align-items: center; gap: 4px;" title="Lượt tham gia">
+                                                                    <i class="bx bxs-group" style="color: #1890ff;"></i> @item.TotalParticipantsText
+                                                                </span>
+                                                            </div>
+                                                            <div class="course-price free">Miễn phí</div>
+                                                            <div class="course-meta">
+                                                                <span><i class="bx bx-book"></i> @item.NumberLesson bài</span>
+                                                                @if (item.LeadTime > 0)
+                                                                {
+                                                                    <span><i class="bx bx-time"></i> @item.LeadTime ngày</span>
+                                                                }
+                                                            </div>
+                                                            <div style="font-size:12px; color:#ff4d4f; margin-top:8px; display:flex; align-items:center; gap:4px;">
+                                                                <i class="bx bx-lock"></i> Chưa mở khoá
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                }
+                                                idxRG++;
+                                            }
+                                        </div>
+                                        <div class="show-more-container">
+                                            <button class="show-more-btn">
+                                                <i class="bx bx-chevron-down"></i>
+                                                Xem thêm <span class="more-count"></span> khoá học
                                             </button>
+                                        </div>
+                                    </div><!-- /.course-grid-wrapper -->
+                                </div>
+                
+                                <!-- /.catalog-sub-block -->
+                            }
+                        </div>
+                    }
+                </div><!-- /.my-courses-section -->
+            </div>
+    
+            <!-- /.section-box -->
+        }
+    }
+    else
+    {
+        <!-- Group list (khi đang filter catalog cụ thể) -->
+        <div class="my-courses-section">
+            @foreach (var typeGroup in displayModel.GroupBy(c => c.CatalogType).OrderBy(g => g.Key))
+            {
+                <div class="catalog-type-block">
+                    @foreach (var catalogGroup in typeGroup.GroupBy(c => c.CatalogID).OrderBy(g => g.Key))
+                    {
+                        <div class="catalog-sub-block">
+                            <div class="catalog-type-header">
+                                <span style="color:#1677ff">Khoá học @(catalogGroup.First().NameCourseCatalog ?? $"Danh mục #{catalogGroup.Key}")</span>
+                            </div>
+                            <div class="course-grid-wrapper">
+                                <div class="course-grid">
+                                    @{
+                                        int idx = 0;
+                                    }
+                                    @foreach (var item in catalogGroup)
+                                    {
+                                        string thumbClass = $"thumb-{idx % 8}";
+                                        bool canAccess = item.Status == 1;
+                                        int progressPct = item.NumberLesson > 0
+                                        ? (int)Math.Round((double)item.TotalHistoryLession / item.NumberLesson * 100)
+                                        : 0;
+
+                                        if (canAccess)
+                                        {
+                                            <a asp-controller="Lesson" asp-action="Index"
+                                               asp-route-courseId="@item.ID"
+                                               asp-route-catalogId="@item.CatalogID"
+                                               class="course-card"
+                                               title="@item.NameCourse">
+                                                <div class="course-thumbnail @(string.IsNullOrEmpty(item.ThumbnailUrl) ? thumbClass : "thumb-img")"
+                                                     @(string.IsNullOrEmpty(item.ThumbnailUrl) ? Html.Raw($"style=\"background-image:url('{defaultThumbnail}')\"") : Html.Raw($"style=\"background-image:url('{item.ThumbnailUrl}')\""))>
+                                                </div>
+                                                <div class="course-info">
+                                                    <div class="course-name">@item.NameCourse</div>
+                                                    <div class="course-instructor">
+                                                        @if (!string.IsNullOrEmpty(item.Instructor))
+                                                        {
+                                                            <span><i class="bx bx-user"></i> @item.Instructor</span>
+                                                        }
+                                                        @if (item.Evaluate == 1)
+                                                        {
+                                                            <span class="badge-status status-pass">
+                                                                <i class="bx bx-check-circle"></i> Đạt
+                                                            </span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge-status status-fail">
+                                                                <i class="bx bx-error-circle"></i> @item.EvaluateText
+                                                            </span>
+                                                        }
+                                                    </div>
+                                                    <div class="course-rating" style="display: flex; align-items: center; gap: 12px; font-size: 13px; color: #666; white-space: nowrap;">
+                                                        <span style="display: flex; align-items: center; gap: 4px; font-weight: 600;" title="Đánh giá: @item.AverageRating.ToString("0.0") sao">
+                                                            <span class="stars-container" style="position: relative; display: inline-block; font-size: 14px; color: #e0e0e0; letter-spacing: 2px;">
+                                                                <i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i>
+                                                                <span class="stars-fill" style="position: absolute; top: 0; left: 0; overflow: hidden; white-space: nowrap; color: #faad14; width: @((item.AverageRating * 20).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))%;">
+                                                                    <i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i>
+                                                                </span>
+                                                            </span>
+                                                            <span style="color: #faad14;">@item.AverageRating.ToString("0.0")</span>
+                                                            <span style="font-weight: 400; color: #888;">(@item.TotalRatingsText)</span>
+                                                        </span>
+                                                        <span style="display: flex; align-items: center; gap: 4px;" title="Lượt thích">
+                                                            <i class="bx bxs-heart" style="color: #ff4d4f;"></i> @item.TotalLikesText
+                                                        </span>
+                                                        <span style="display: flex; align-items: center; gap: 4px;" title="Lượt tham gia">
+                                                            <i class="bx bxs-group" style="color: #1890ff;"></i> @item.TotalParticipantsText
+                                                        </span>
+                                                    </div>
+                                                    <div class="course-meta">
+                                                        <span><i class="bx bx-book"></i> @item.TotalHistoryLession/@item.NumberLesson bài</span>
+                                                        @if (item.LeadTime > 0)
+                                                        {
+                                                            <span><i class="bx bx-time"></i> @item.LeadTime ngày</span>
+                                                        }
+                                                    </div>
+                                                    @if (item.TotalHistoryLession > 0)
+                                                    {
+                                                        <div class="course-progress">
+                                                            <div class="progress-bar-wrap">
+                                                                <div class="progress-bar-fill" style="width:@progressPct%"></div>
+                                                            </div>
+                                                            <div class="progress-label">
+                                                                <span>Tiến độ</span>
+                                                                <span>@progressPct%</span>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </a>
                                         }
                                         else
                                         {
-                                            <button class="btn btn-info  btn-sm text-dark shadow-none ms-1" title="Bài tập">
-                                                @item.ExcercisePoints / @item.GoalExercise
-                                            </button>
+                                            <div class="course-card locked" title="Cần hoàn thành bài học trước đó để mở khoá.">
+                                                <div class="course-thumbnail @(string.IsNullOrEmpty(item.ThumbnailUrl) ? thumbClass : "thumb-img")"
+                                                     @(string.IsNullOrEmpty(item.ThumbnailUrl) ? Html.Raw($"style=\"background-image:url('{defaultThumbnail}')\"") : Html.Raw($"style=\"background-image:url('{item.ThumbnailUrl}')\""))>
+
+                                                    <div class="lock-overlay">
+                                                        <i class="bx bx-lock-alt"></i>
+                                                    </div>
+
+                                                </div>
+                                                <div class="course-info">
+                                                    <div class="course-name">@item.NameCourse</div>
+                                                    @if (!string.IsNullOrEmpty(item.Instructor))
+                                                    {
+                                                        <div class="course-instructor">
+                                                            <span><i class="bx bx-user"></i> @item.Instructor</span>
+                                                        </div>
+                                                    }
+                                                    <div class="course-rating" style="display: flex; align-items: center; gap: 12px; font-size: 13px; color: #666; white-space: nowrap;">
+                                                        <span style="display: flex; align-items: center; gap: 4px; font-weight: 600;" title="Đánh giá: @item.AverageRating.ToString("0.0") sao">
+                                                            <span class="stars-container" style="position: relative; display: inline-block; font-size: 14px; color: #e0e0e0; letter-spacing: 2px;">
+                                                                <i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i>
+                                                                <span class="stars-fill" style="position: absolute; top: 0; left: 0; overflow: hidden; white-space: nowrap; color: #faad14; width: @((item.AverageRating * 20).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))%;">
+                                                                    <i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i><i class="bx bxs-star"></i>
+                                                                </span>
+                                                            </span>
+                                                            <span style="color: #faad14;">@item.AverageRating.ToString("0.0")</span>
+                                                            <span style="font-weight: 400; color: #888;">(@item.TotalRatingsText)</span>
+                                                        </span>
+                                                        <span style="display: flex; align-items: center; gap: 4px;" title="Lượt thích">
+                                                            <i class="bx bxs-heart" style="color: #ff4d4f;"></i> @item.TotalLikesText
+                                                        </span>
+                                                        <span style="display: flex; align-items: center; gap: 4px;" title="Lượt tham gia">
+                                                            <i class="bx bxs-group" style="color: #1890ff;"></i> @item.TotalParticipantsText
+                                                        </span>
+                                                    </div>
+                                                    <div class="course-price free">Miễn phí</div>
+                                                    <div class="course-meta">
+                                                        <span><i class="bx bx-book"></i> @item.NumberLesson bài</span>
+                                                        @if (item.LeadTime > 0)
+                                                        {
+                                                            <span><i class="bx bx-time"></i> @item.LeadTime ngày</span>
+                                                        }
+                                                    </div>
+                                                    <div style="font-size:12px; color:#ff4d4f; margin-top:8px; display:flex; align-items:center; gap:4px;">
+                                                        <i class="bx bx-lock"></i> Chưa mở khoá
+                                                    </div>
+                                                </div>
+                                            </div>
                                         }
+
+                                        idx++;
                                     }
-                                </li>
-                                <li class="list-group-item d-flex justify-content-start align-items-center p-0 border-0">
-                                    <p class="m-0 text-dark">Đánh giá: <span class="@(item.Evaluate == 1 ? "text-success": (item.Status == 1 ?"text-danger":"text-dark"))">@item.EvaluateText</span></p>
-                                </li>
-                            </ul>
+                                </div>
+                                <div class="show-more-container">
+                                    <button class="show-more-btn">
+                                        <i class="bx bx-chevron-down"></i>
+                                        Xem thêm <span class="more-count"></span> khoá học
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    }
                 </div>
-
-
-                @*<a href="/Lesson/Index?courseId=@item.ID&catalogId=@item.CatalogID" class="btn btn-primary btn-sm">Xem chi tiết</a>*@
-                @if (item.Status == 1)
-                {
-                    <a asp-controller="Lesson"
-                       asp-action="Index"
-                       asp-route-courseId="@item.ID"
-                       asp-route-catalogId="@item.CatalogID" class="btn btn-primary btn-sm">Xem chi tiết</a>
-                }
-                else
-                {
-                    <button class="btn btn-primary btn-sm" disabled>Xem chi tiết</button>
-                }
-
-            </div>
+            }
         </div>
     }
-</div>
 
-<script>
-    courseCatalogID = @ViewBag.CoureCatalogID;
-    // departmentID = @ViewBag.DepartmentID;
-    catalogType = @ViewBag.CatalogType;
-</script>
 
-<script src="~/js/home.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.course-grid-wrapper').forEach(function (wrapper) {
+                var grid = wrapper.querySelector('.course-grid');
+                var btnContainer = wrapper.querySelector('.show-more-container');
+                var btn = wrapper.querySelector('.show-more-btn');
+                var countSpan = wrapper.querySelector('.more-count');
+                const countItem = 1;
+                if (!grid || !btn) return;
+
+                var cards = Array.from(grid.querySelectorAll('.course-card'));
+                if (cards.length === 0) return;
+
+                // Nhóm card theo hàng (cùng offsetTop = cùng hàng)
+                var rows = [];
+                cards.forEach(function (card) {
+                    var top = card.offsetTop;
+                    var row = rows.find(function (r) { return r.top === top; });
+                    if (!row) { row = { top: top, cards: [] }; rows.push(row); }
+                    row.cards.push(card);
+                });
+
+                if (rows.length <= countItem) return; // Không cần show-more
+
+                // Ẩn từ hàng 2 trở đi
+                var hiddenCards = rows.slice(countItem).reduce(function (acc, r) {
+                    return acc.concat(r.cards);
+                }, []);
+                hiddenCards.forEach(function (c) { c.style.display = 'none'; });
+
+                // Hiện button với số đếm
+                if (countSpan) countSpan.textContent = hiddenCards.length;
+                btnContainer.style.display = 'flex';
+
+                var expanded = false;
+                btn.addEventListener('click', function () {
+                    if (!expanded) {
+                        hiddenCards.forEach(function (c) { c.style.display = ''; });
+                        btn.innerHTML = '<i class="bx bx-chevron-up"></i> Thu gọn';
+                        expanded = true;
+                    } else {
+                        hiddenCards.forEach(function (c) { c.style.display = 'none'; });
+                        btn.innerHTML = '<i class="bx bx-chevron-down"></i> Xem thêm '
+                            + hiddenCards.length + ' khoá học';
+                        expanded = false;
+                    }
+                });
+            });
+        });
+    </script>
+    <script>
+        // ===== FRONTEND SEARCH =====
+        (function () {
+            var searchInput = document.getElementById('search-input');
+            if (!searchInput) return;
+
+            searchInput.addEventListener('input', function () {
+                var keyword = this.value.trim().toLowerCase();
+
+                var allCards = Array.from(document.querySelectorAll('.course-card'));
+
+                if (keyword === '') {
+                    // Xoá tìm kiếm: khôi phục hiển thị
+                    allCards.forEach(function (card) { card.style.display = ''; });
+                    document.querySelectorAll('.catalog-type-block, .catalog-sub-block').forEach(function (el) {
+                        el.style.display = '';
+                    });
+                    document.querySelectorAll('.section-header').forEach(function (el) {
+                        el.style.display = '';
+                    });
+                    document.querySelectorAll('.my-courses-section').forEach(function (el) {
+                        el.style.display = '';
+                    });
+                    // Khôi phục section-box
+                    document.querySelectorAll('.section-box').forEach(function (box) {
+                        box.style.display = '';
+                    });
+                    // Khôi phục show-more: ẩn lại từ hàng 2+
+                    document.querySelectorAll('.course-grid-wrapper').forEach(function (wrapper) {
+                        var grid = wrapper.querySelector('.course-grid');
+                        var btnContainer = wrapper.querySelector('.show-more-container');
+                        var btn = wrapper.querySelector('.show-more-btn');
+                        var countSpan = wrapper.querySelector('.more-count');
+                        if (!grid || !btn) return;
+                        var cards = Array.from(grid.querySelectorAll('.course-card'));
+                        var rows = [];
+                        cards.forEach(function (card) {
+                            card.style.display = '';
+                            var top = card.offsetTop;
+                            var row = rows.find(function (r) { return r.top === top; });
+                            if (!row) { row = { top: top, cards: [] }; rows.push(row); }
+                            row.cards.push(card);
+                        });
+                        var countItem = 1;
+                        if (rows.length > countItem) {
+                            rows.slice(countItem).forEach(function (r) {
+                                r.cards.forEach(function (c) { c.style.display = 'none'; });
+                            });
+                            var hidden = rows.slice(countItem).reduce(function (acc, r) { return acc.concat(r.cards); }, []);
+                            if (countSpan) countSpan.textContent = hidden.length;
+                            btn.innerHTML = '<i class="bx bx-chevron-down"></i> Xem thêm <span class="more-count">' + hidden.length + '</span> khoá học';
+                            btnContainer.style.display = 'flex';
+                        } else {
+                            btnContainer.style.display = 'none';
+                        }
+                    });
+                    return;
+                }
+
+                // Đang tìm kiếm: bỏ ẩn tất cả, ẩn show-more container
+                document.querySelectorAll('.show-more-container').forEach(function (c) { c.style.display = 'none'; });
+
+                // Filter card theo tên khoá học
+                allCards.forEach(function (card) {
+                    var name = '';
+                    var nameEl = card.querySelector('.course-name');
+                    if (nameEl) name = nameEl.textContent || '';
+                    var match = name.toLowerCase().includes(keyword);
+                    card.style.display = match ? '' : 'none';
+                });
+
+                // Ẩn catalog-sub-block không có kết quả
+                document.querySelectorAll('.catalog-sub-block').forEach(function (block) {
+                    var hasVisible = Array.from(block.querySelectorAll('.course-card')).some(function (c) {
+                        return c.style.display !== 'none';
+                    });
+                    block.style.display = hasVisible ? '' : 'none';
+                });
+
+                // Ẩn catalog-type-block không có kết quả
+                document.querySelectorAll('.catalog-type-block').forEach(function (block) {
+                    var hasVisible = Array.from(block.querySelectorAll('.course-card')).some(function (c) {
+                        return c.style.display !== 'none';
+                    });
+                    block.style.display = hasVisible ? '' : 'none';
+                });
+
+                // Ẩn section-header nếu my-courses-section không có kết quả
+                document.querySelectorAll('.my-courses-section').forEach(function (section) {
+                    var hasVisible = Array.from(section.querySelectorAll('.course-card')).some(function (c) {
+                        return c.style.display !== 'none';
+                    });
+                    var header = section.previousElementSibling;
+                    if (header && header.classList.contains('section-header')) {
+                        header.style.display = hasVisible ? '' : 'none';
+                    }
+                    section.style.display = hasVisible ? '' : 'none';
+                });
+
+                // Ẩn section-box nếu không có course-card nào visible
+                document.querySelectorAll('.section-box').forEach(function (box) {
+                    var hasVisible = Array.from(box.querySelectorAll('.course-card')).some(function (c) {
+                        return c.style.display !== 'none';
+                    });
+                    box.style.display = hasVisible ? '' : 'none';
+                });
+            });
+        })();
+    </script>
+    <script>
+        courseCatalogID = @ViewBag.CoureCatalogID;
+        catalogType = @ViewBag.CatalogType;
+    </script>
+    <script src="~/js/home.js" asp-append-version="true"></script>
+</body>
+</html>

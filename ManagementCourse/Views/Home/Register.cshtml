@@ -265,7 +265,8 @@
                                            type="radio"
                                            id="sourceFacebook"
                                            name="ReferralSource"
-                                           value="Mạng xã hội(Facebook, Tiktok, Youtube, LinkedIn...)">
+                                           value="Mạng xã hội(Facebook, Tiktok, Youtube, LinkedIn...)"
+                                           @(ViewData["ReferralSource"]?.ToString() == "Mạng xã hội(Facebook, Tiktok, Youtube, LinkedIn...)" ? "checked" : "")>
                                     <label class="form-check-label" for="sourceFacebook">
                                         Mạng xã hội(Facebook, Tiktok, Youtube, LinkedIn...)
                                     </label>
@@ -276,7 +277,8 @@
                                            type="radio"
                                            id="sourceGoogle"
                                            name="ReferralSource"
-                                           value="Google Search, AI Chat (ChatGPT, Gemini, Claude...)">
+                                           value="Google Search, AI Chat (ChatGPT, Gemini, Claude...)"
+                                           @(ViewData["ReferralSource"]?.ToString() == "Google Search, AI Chat (ChatGPT, Gemini, Claude...)" ? "checked" : "")>
                                     <label class="form-check-label" for="sourceGoogle">
                                         Google Search, AI Chat (ChatGPT, Gemini, Claude...)
                                     </label>
@@ -287,7 +289,8 @@
                                            type="radio"
                                            id="sourceFriend"
                                            name="ReferralSource"
-                                           value="Bạn bè / Người quen giới thiệu">
+                                           value="Bạn bè / Người quen giới thiệu"
+                                           @(ViewData["ReferralSource"]?.ToString() == "Bạn bè / Người quen giới thiệu" ? "checked" : "")>
                                     <label class="form-check-label" for="sourceFriend">
                                         Bạn bè / Người quen giới thiệu
                                     </label>
@@ -298,7 +301,8 @@
                                            type="radio"
                                            id="sourceWebsite"
                                            name="ReferralSource"
-                                           value="Website chính thức">
+                                           value="Website chính thức"
+                                           @(ViewData["ReferralSource"]?.ToString() == "Website chính thức" ? "checked" : "")>
                                     <label class="form-check-label" for="sourceWebsite">
                                         Website chính thức
                                     </label>
@@ -308,7 +312,8 @@
                                            type="radio"
                                            id="sourceTrienLam"
                                            name="ReferralSource"
-                                           value="Sự kiện, Triển lãm, Ngày hội việc làm...">
+                                           value="Sự kiện, Triển lãm, Ngày hội việc làm..."
+                                           @(ViewData["ReferralSource"]?.ToString() == "Sự kiện, Triển lãm, Ngày hội việc làm..." ? "checked" : "")>
                                     <label class="form-check-label" for="sourceTrienLam">
                                         Sự kiện, Triển lãm, Ngày hội việc làm...
                                     </label>
@@ -320,7 +325,8 @@
                                            type="radio"
                                            name="ReferralSource"
                                            id="sourceOther"
-                                           value="Khác">
+                                           value="Khác"
+                                           @(ViewData["ReferralSource"]?.ToString() == "Khác" || (!string.IsNullOrEmpty(ViewData["ReferralSource"]?.ToString()) && !new[]{"Mạng xã hội(Facebook, Tiktok, Youtube, LinkedIn...)","Google Search, AI Chat (ChatGPT, Gemini, Claude...)","Bạn bè / Người quen giới thiệu","Website chính thức","Sự kiện, Triển lãm, Ngày hội việc làm..."}.Contains(ViewData["ReferralSource"]?.ToString())) ? "checked" : "")>
                                     <label class="form-check-label" for="sourceOther">
                                         Khác
                                     </label>
@@ -331,10 +337,52 @@
                                        id="otherSourceText"
                                        name="OtherReferralSource"
                                        placeholder="Vui lòng ghi rõ"
+                                       value="@ViewData["OtherReferralSource"]"
                                        style="display:none;">
                             </div>
 
+                            <!-- Chủ đề bạn quan tâm -->
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    Chủ đề bạn quan tâm <span class="text-danger">*</span>
+                                    <small class="text-muted ms-1">(Có thể chọn nhiều)</small>
+                                </label>
+                                <div class="row g-2" id="interestCheckboxes">
+                                    @{
+                                        var savedInterests = (ViewData["InterestedCatalogTypeIds"]?.ToString() ?? "").Split(',').Where(x => !string.IsNullOrEmpty(x)).ToList();
+                                    }
+                                    @foreach (var item in (IEnumerable<ManagementCourse.Models.CourseCatalogType>)ViewData["CourseCatalogTypes"])
+                                    {
+                                        <div class="col-md-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input interest-checkbox"
+                                                       type="checkbox"
+                                                       id="interest_@item.Id"
+                                                       name="InterestedCatalogTypeIds"
+                                                       value="@item.Id"
+                                                       @(savedInterests.Contains(item.Id.ToString()) ? "checked" : "") />
+                                                <label class="form-check-label" for="interest_@item.Id">
+                                                    @item.CourseCatalogTypeName
+                                                </label>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                                <div id="interestError" class="text-danger mt-1" style="display:none; font-size:0.875em;">
+                                    Vui lòng chọn ít nhất một chủ đề bạn quan tâm!
+                                </div>
+                            </div>
+
                             <script>
+                                // Khởi tạo: hiện ô text Khác nếu đang được chọn (sau lỗi validate server)
+                                (function () {
+                                    const otherInput = document.getElementById('otherSourceText');
+                                    const sourceOther = document.getElementById('sourceOther');
+                                    if (sourceOther && sourceOther.checked) {
+                                        otherInput.style.display = 'block';
+                                    }
+                                })();
+
                                 // Gắn event 'change' cho TẤT CẢ radio trong nhóm ReferralSource
                                 document.querySelectorAll('input[name="ReferralSource"]')
                                     .forEach(function (radio) {
@@ -379,8 +427,28 @@
                             </script>
 
                             <div class="mb-3">
-                                <button class="btn btn-primary d-grid w-100" type="submit">Đăng ký</button>
+                                <button class="btn btn-primary d-grid w-100" type="button" id="btnRegister" onclick="submitRegister()">Đăng ký</button>
                             </div>
+                            <script>
+                                function submitRegister() {
+                                    const checked = document.querySelectorAll('.interest-checkbox:checked');
+                                    const errorDiv = document.getElementById('interestError');
+                                    if (checked.length === 0) {
+                                        errorDiv.style.display = 'block';
+                                        document.getElementById('interestCheckboxes').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                        return;
+                                    }
+                                    errorDiv.style.display = 'none';
+                                    document.getElementById('registerForm').submit();
+                                }
+                                // Ẩn lỗi khi người dùng bắt đầu chọn
+                                document.querySelectorAll('.interest-checkbox').forEach(function (cb) {
+                                    cb.addEventListener('change', function () {
+                                        const anyChecked = document.querySelectorAll('.interest-checkbox:checked').length > 0;
+                                        document.getElementById('interestError').style.display = anyChecked ? 'none' : 'block';
+                                    });
+                                });
+                            </script>
                         </form>
 
                         <p class="text-center mt-3">

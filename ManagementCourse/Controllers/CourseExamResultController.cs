@@ -1,4 +1,4 @@
-﻿using ManagementCourse.Common;
+using ManagementCourse.Common;
 using ManagementCourse.Models;
 using ManagementCourse.Models.DTO;
 using ManagementCourse.Reposiory;
@@ -816,8 +816,9 @@ namespace ManagementCourse.Controllers
         {
             if (string.IsNullOrWhiteSpace(urlPDF))
                 return string.Empty;
-            var apiUrl = _configuration["APIUrl"];
-            string host = $"{apiUrl}api/share/";
+            //var apiUrl = _configuration["APIUrl"];
+            //string host = $"{apiUrl}api/share/";
+            string host = $"/api/share/";
 
             string urlFile = urlPDF.Replace(@"\\192.168.1.190\", "");
             urlFile = urlFile.Replace("\\", "/");
@@ -871,6 +872,9 @@ namespace ManagementCourse.Controllers
                 return Redirect(Request.Headers["Referer"].ToString());
             }
 
+            Course course = courseRepo.GetByID(lesson.CourseId ?? 0);
+            ViewBag.CourseId = lesson.CourseId;
+            ViewBag.CourseName = course != null ? TextUtils.ToString(course.NameCourse) : "";
             ViewBag.LessonID = lesson.Id;
             ViewBag.LessonName = TextUtils.ToString(lesson.LessonTitle);
             ViewBag.CourseExamID = courseExam.Id;
