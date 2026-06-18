@@ -30,6 +30,14 @@
         public string CourseTypeName { get; set; }
         public bool IsLearnInTurn { get; set; }
         public string CourseCatalogTypeName { get; set; }
+        public string ThumbnailUrl { get; set; }
+        public decimal AverageRating { get; set; }
+        public int TotalParticipants { get; set; }
+        public int TotalLikes { get; set; }
+        public string TotalParticipantsText { get; set; }
+        public string TotalLikesText { get; set; }
+        public string TotalRatingsText { get; set; }
+        public int TotalRatings { get; set; }
 
     }
 }

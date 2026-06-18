@@ -35,18 +35,26 @@ namespace ManagementCourse.Controllers
         PasswordResetTokenRepository _passwordResetTokenRepo;
         GenericRepository<CourseExam> _cousrseExam = new GenericRepository<CourseExam>();
         public readonly EmailHelper _emailHelper;
+        CourseCatalogTypeRepository _courseCatalogTypeRepo;
+        CourseRatingRepository _courseRatingRepo;
 
-        public HomeController(CourseCatalogRepository courseCatalogRepository, CourseRepository courseRepository, LessonRepository lessonRepository, EmailHelper emailHelper, UsersRepository usersRepository, PasswordResetTokenRepository passwordResetTokenRepository)
+        public HomeController(CourseCatalogRepository courseCatalogRepository, CourseRepository courseRepository,
+            LessonRepository lessonRepository, EmailHelper emailHelper, UsersRepository usersRepository,
+            PasswordResetTokenRepository passwordResetTokenRepository,
+            CourseCatalogTypeRepository courseCatalogTypeRepository,
+            CourseRatingRepository courseRatingRepository)
         {
             _courseCatalogRepo = courseCatalogRepository;
             _courseRepo = courseRepository;
             _lessonRepo = lessonRepository;
             _emailHelper = emailHelper;
+            _courseCatalogTypeRepo = courseCatalogTypeRepository;
             _usersRepo = usersRepository;
             _passwordResetTokenRepo = passwordResetTokenRepository;
+            _courseRatingRepo = courseRatingRepository;
         }
 
-        public IActionResult Index(int courseCatalogID, int catalogType = 1)
+        public IActionResult Index(int courseCatalogID, int catalogType = 0)
         {
             if (HttpContext.Session.GetInt32("userid") == null)
             {
@@ -56,74 +64,30 @@ namespace ManagementCourse.Controllers
             int userID = (int)HttpContext.Session.GetInt32("userid");
             User user = _usersRepo.GetByID(userID);
             bool isAdmin = user.IsAdmin ?? false;
-            //int kpiPositionTypeID = 0;
-            //DataTable kpiPositionType = LoadDataFromSP.GetDataTableSP("spGetKPIPositionTypeByEmployeeID",
-            //            new string[] { "@EmployeeID" }, new object[] { employeeID });
-            //if (kpiPositionType.Rows.Count > 0)
-            //{
-            //    kpiPositionTypeID = TextUtils.ToInt(kpiPositionType.Rows[0]["ID"]);
-            //}
+            bool canLearnAhead = user.CanLearnAhead;
 
+            // Parse chủ đề quan tâm của user để lọc "Khoá học của bạn"
+            var interestedCatalogTypeIds = new List<int>();
+            if (!string.IsNullOrEmpty(user?.InterestedCatalogTypeIds))
+            {
+                interestedCatalogTypeIds = user.InterestedCatalogTypeIds
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(x => int.TryParse(x.Trim(), out int id) ? id : -1)
+                    .Where(id => id > 0)
+                    .ToList();
+            }
+            ViewBag.InterestedCatalogTypeIds = interestedCatalogTypeIds;
 
             ViewBag.CoureCatalogID = courseCatalogID;
             ViewBag.CatalogType = catalogType;
-
-            //var listCourseChile = new List<CourseDTO>();
-            //if (!(kpiPositionTypeID <= 0))
-            //{
-            //    listCourseChile = _courseRepo.ListCourses( 0, "", employeeID, catalogType);
-            //}
-
-            var listCourseParent = _courseRepo.ListCourses(courseCatalogID, "", employeeID, catalogType, isAdmin);
+            var listCourseParent = _courseRepo.ListCourses(courseCatalogID, "", employeeID, catalogType, isAdmin, canLearnAhead);
             if (listCourseParent.Count > 0)
             {
                 ViewBag.TitleCourse = courseCatalogID == 0 ? "" : $"danh sách khoá học {listCourseParent.FirstOrDefault().NameCourseCatalog}";
             }
-
             ViewBag.ListExam = _cousrseExam.GetAll().ToList();
-            //int leader = TextUtils.ToInt(HttpContext.Session.GetInt32("isleader"));
-            //int isAdmin = TextUtils.ToInt(HttpContext.Session.GetInt32("isAdmin"));
-
-            //for (int i = 0; i < listCourseParent.Count; i++)
-            //{
-
-            //    if (i == 0) continue;
-
-            //    CourseDTO course = listCourseParent[i - 1];
-
-            //    if (course.CatalogType != 2)
-            //    {
-            //        if ((course.NumberLesson == course.TotalHistoryLession && course.Evaluate == 1) || leader > 0 || isAdmin > 0 || employeeID == 55)
-            //        {
-            //            listCourseParent[i].Status = 1;
-            //        }
-            //        else
-            //        {
-            //            listCourseParent[i].Status = 0;
-            //        }
-            //    }
-            //}
-
-
-            //if (!listCourseChile.Any(x => x.Evaluate <= 0))
-            //{
-            //    return View(listCourseParent);
-            //}
-
-            //var childIds = new HashSet<int>(listCourseChile.Select(c => c.ID));
-
-            //foreach (var parent in listCourseParent)
-            //{
-            //    if (parent.Evaluate == 1 || childIds.Contains(parent.ID) || leader > 0 || isAdmin > 0 || employeeID == 55)
-            //    {
-            //        parent.Status = 1; // Đạt hoặc nằm trong listCourseChild → có thể làm
-            //    }
-            //    else
-            //    {
-            //        parent.Status = 0; // Còn lại → không thể làm
-            //    }
-            //}
-
+            string DefaultThumbnail = @"/api/share/Software/Test/UPLOADFILE/CourseLesson/Outsite/Image/thumbnail-default.png";
+            ViewBag.DefaultThumbnail = DefaultThumbnail;
             return View(listCourseParent);
 
         }
@@ -167,6 +131,7 @@ namespace ManagementCourse.Controllers
                 HttpContext.Session.SetInt32("employeeid", TextUtils.ToInt(user.Rows[0]["EmployeeID"]));
                 HttpContext.Session.SetString("loginname", TextUtils.ToString(user.Rows[0]["LoginName"]));
                 HttpContext.Session.SetString("fullname", TextUtils.ToString(user.Rows[0]["FullName"]));
+                HttpContext.Session.SetInt32("isadmin", TextUtils.ToInt(user.Rows[0]["IsAdmin"]));
                 //HttpContext.Session.SetInt32("isAdmin", TextUtils.ToInt(user.Rows[0]["IsAdmin"]));
                 //HttpContext.Session.SetInt32("isAdminSale", TextUtils.ToInt(user.Rows[0]["IsAdminSale"]));
                 //HttpContext.Session.SetInt32("department_id", TextUtils.ToInt(user.Rows[0]["DepartmentID"]));
@@ -199,33 +164,52 @@ namespace ManagementCourse.Controllers
         [HttpGet]
         public IActionResult Register()
         {
+            var courseCatalogTypes = _courseCatalogTypeRepo.GetAll(c=>c.IsDeleted == false).OrderBy(c=>c.Stt);
+            ViewData["CourseCatalogTypes"] = courseCatalogTypes;
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> RegisterAsync(string fullName, string birthDate, int gender, string email,
+        public async Task<IActionResult> RegisterAsync(string fullName, string birthDate, int? gender, string email,
             string Organization, string Position, string password, string confirmPassword,
-            string ReferralSource, string OtherReferralSource, string PhoneNumber, string Address)
+            string ReferralSource, string OtherReferralSource, string PhoneNumber, string Address,
+            List<int> InterestedCatalogTypeIds)
         {
             // Lưu lại giá trị form để hiển thị lại khi có lỗi
             ViewData["FullName"] = fullName;
             ViewData["BirthDate"] = birthDate;
-            ViewData["Gender"] = gender;
+            ViewData["Gender"] = gender?.ToString();
             ViewData["Email"] = email;
             ViewData["Organization"] = Organization;
             ViewData["Position"] = Position;
             ViewData["PhoneNumber"] = PhoneNumber;
             ViewData["Address"] = Address;
+            ViewData["ReferralSource"] = ReferralSource;
+            ViewData["OtherReferralSource"] = OtherReferralSource;
+            ViewData["InterestedCatalogTypeIds"] = InterestedCatalogTypeIds != null
+                ? string.Join(",", InterestedCatalogTypeIds)
+                : "";
 
             // Validate required fields
             if (string.IsNullOrEmpty(fullName) || string.IsNullOrEmpty(birthDate) ||
-                gender == 0 || string.IsNullOrEmpty(email) ||
+                gender == null || string.IsNullOrEmpty(email) ||
                 string.IsNullOrEmpty(Organization) || string.IsNullOrEmpty(Position) ||
                 string.IsNullOrEmpty(PhoneNumber) || string.IsNullOrEmpty(Address) ||
                 string.IsNullOrEmpty(ReferralSource) ||
                 string.IsNullOrEmpty(password) || string.IsNullOrEmpty(confirmPassword))
             {
                 ViewBag.Error = "Vui lòng nhập đầy đủ thông tin!";
+                var courseCatalogTypesErr = _courseCatalogTypeRepo.GetAll(c => c.IsDeleted == false).OrderBy(c => c.Stt);
+                ViewData["CourseCatalogTypes"] = courseCatalogTypesErr;
+                return View();
+            }
+
+            // Validate chu de quan tam
+            if (InterestedCatalogTypeIds == null || InterestedCatalogTypeIds.Count == 0)
+            {
+                ViewBag.Error = "Vui lòng chọn ít nhất một chủ đề bạn quan tâm!";
+                var courseCatalogTypesErr = _courseCatalogTypeRepo.GetAll(c => c.IsDeleted == false).OrderBy(c => c.Stt);
+                ViewData["CourseCatalogTypes"] = courseCatalogTypesErr;
                 return View();
             }
 
@@ -236,7 +220,8 @@ namespace ManagementCourse.Controllers
             }
 
             // Validate gender (1 = Nam, 0 = Nu)
-            if (gender != 1 && gender != 0)
+            int genderValue = gender.Value; // đã chắc chắn có giá trị do kiểm tra null ở trên
+            if (genderValue != 1 && genderValue != 0)
             {
                 ViewBag.Error = "Giới tính không hợp lệ!";
                 return View();
@@ -278,25 +263,44 @@ namespace ManagementCourse.Controllers
             {
                 DataTable result = LoadDataFromSP.GetDataTableSP("spRegister",
                     new string[] { "@FullName", "@BirthDate", "@Gender", "@Email", "@Organization", "@Position", "@ReferralSource", "@Password", "@PhoneNumber", "@Address" },
-                    new object[] { fullName, birthDate, gender, email, Organization, Position, finalReferralSource, hashedPassword, PhoneNumber, Address });
+                    new object[] { fullName, birthDate, genderValue, email, Organization, Position, finalReferralSource, hashedPassword, PhoneNumber, Address });
 
                 if (result.Rows.Count > 0 && Convert.ToInt32(result.Rows[0]["UserID"]) > 0)
                 {
+                    int newUserId = Convert.ToInt32(result.Rows[0]["UserID"]);
+
+                    // Lưu danh sách chủ đề quan tâm vào cột InterestedCatalogTypeIds
+                    if (InterestedCatalogTypeIds != null && InterestedCatalogTypeIds.Count > 0)
+                    {
+                        var user = _usersRepo.GetByID(newUserId);
+                        if (user != null)
+                        {
+                            user.InterestedCatalogTypeIds = string.Join(",", InterestedCatalogTypeIds);
+                            await _usersRepo.UpdateAsync(user);
+                        }
+                    }
+
                     // Gửi email thông báo tài khoản mới chờ phê duyệt
                     await _emailHelper.SendAsync(fullName, email);
 
                     ViewBag.Success = "Đăng ký thành công! Vui lòng chờ xét duyệt tài khoản.";
+                    var courseCatalogTypesOk = _courseCatalogTypeRepo.GetAll(c => c.IsDeleted == false).OrderBy(c => c.Stt);
+                    ViewData["CourseCatalogTypes"] = courseCatalogTypesOk;
                     return View();
                 }
                 else
                 {
                     ViewBag.Error = result.Rows[0]["Message"].ToString();
+                    var courseCatalogTypesErr2 = _courseCatalogTypeRepo.GetAll(c => c.IsDeleted == false).OrderBy(c => c.Stt);
+                    ViewData["CourseCatalogTypes"] = courseCatalogTypesErr2;
                     return View();
                 }
             }
             catch (Exception ex)
             {
                 ViewBag.Error = "Đã xảy ra lỗi: " + ex.Message;
+                var courseCatalogTypesEx = _courseCatalogTypeRepo.GetAll(c => c.IsDeleted == false).OrderBy(c => c.Stt);
+                ViewData["CourseCatalogTypes"] = courseCatalogTypesEx;
                 return View();
             }
         }
@@ -702,6 +706,76 @@ namespace ManagementCourse.Controllers
 
         #endregion
 
+        #region Rating khoá học
+
+        /// <summary>
+        /// Lưu hoặc cập nhật đánh giá sao khoá học của user hiện tại
+        /// </summary>
+        [HttpPost]
+        public JsonResult RateCourse([FromBody] CourseRatingRequest req)
+        {
+            try
+            {
+                var employeeId = HttpContext.Session.GetInt32("employeeid");
+                var fullName   = HttpContext.Session.GetString("fullname");
+                if (employeeId == null) return Json(new { success = false, message = "Chưa đăng nhập" });
+                if (req.Stars < 1 || req.Stars > 5) return Json(new { success = false, message = "Số sao không hợp lệ" });
+
+                var existing = _courseRatingRepo.GetRating(req.CourseId, employeeId.Value);
+                if (existing != null)
+                {
+                    existing.Stars       = (byte)req.Stars;
+                    existing.Comment     = req.Comment;
+                    existing.UpdatedDate = DateTime.Now;
+                    _courseRatingRepo.Update(existing);
+                }
+                else
+                {
+                    _courseRatingRepo.Create(new Models.CourseRating
+                    {
+                        CourseId    = req.CourseId,
+                        EmployeeId  = employeeId.Value,
+                        Stars       = (byte)req.Stars,
+                        Comment     = req.Comment,
+                        CreatedDate = DateTime.Now
+                    });
+                }
+
+                var summary = _courseRatingRepo.GetSummary(req.CourseId, employeeId.Value);
+                return Json(new { success = true, summary });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Lấy thống kê đánh giá sao của khoá học
+        /// </summary>
+        [HttpGet]
+        public JsonResult GetRating(int courseId)
+        {
+            try
+            {
+                var employeeId = HttpContext.Session.GetInt32("employeeid");
+                var summary = _courseRatingRepo.GetSummary(courseId, employeeId);
+                return Json(summary);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public class CourseRatingRequest
+        {
+            public int    CourseId { get; set; }
+            public int    Stars    { get; set; }
+            public string Comment  { get; set; }
+        }
+
+        #endregion
 
     }
 }

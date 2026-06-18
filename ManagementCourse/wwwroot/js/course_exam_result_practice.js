@@ -1,4 +1,4 @@
-﻿var examquestions = [];
+var examquestions = [];
 var indexQuestion = 0;
 var isSubmitSuccess = false;
 var resultExamId = 0;
@@ -17,19 +17,33 @@ function GetHistoryPractice() {
         contentType: 'application/json',
         data: { courseExamId: courseExamId },
         success: function (response) {
-            //console.log(response);
-
             var html = '';
-            $.each(response, function (i, item) {
-                var dateStart = moment(item.createdDate).isValid() ? moment(item.createdDate).format("DD/MM/YYYY HH:mm") : '';
-                html += `<tr tabindex='0' onclick="GetResultPractice(${item.id})">
-                            <th class="text-center">${dateStart}</th>
-                            <th class="text-center">${item.goal}</th>
-                            <th class="text-center">${item.practicePoints}</th>
-                            <th class="text-center" style="background-color:${item.statusText == "Đạt" ? "Green" : (item.statusText == "Không đạt" ? "Red" : "Yellow")};
-                                                                      color:${item.statusText == "Chưa chấm điểm" ? "black" : "white"}; ">${item.statusText}</th>
+            if (response && response.length > 0) {
+                $.each(response, function (i, item) {
+                    var dateStart = moment(item.createdDate).isValid() ? moment(item.createdDate).format("DD/MM/YYYY HH:mm") : '';
+                    var statusClass = '';
+                    if (item.statusText === "Đạt") {
+                        statusClass = 'status-passed';
+                    } else if (item.statusText === "Không đạt") {
+                        statusClass = 'status-failed';
+                    } else {
+                        statusClass = 'status-pending';
+                    }
+                    var resultId = item.id !== undefined ? item.id : (item.ID !== undefined ? item.ID : item.Id);
+                    html += `<tr tabindex='0' onclick="GetResultPractice(this, ${resultId})">
+                                <td class="text-center">${dateStart}</td>
+                                <td class="text-center">${item.goal}</td>
+                                <td class="text-center fw-bold">${item.practicePoints}</td>
+                                <td class="text-center">
+                                    <span class="status-badge ${statusClass}">${item.statusText}</span>
+                                </td>
+                            </tr>`;
+                });
+            } else {
+                html = `<tr>
+                            <td colspan="4" class="text-center text-muted py-4">Chưa có lịch sử thi thực hành</td>
                         </tr>`;
-            })
+            }
             $('#tbody_history_result').html(html);
         },
         error: function (error) {
@@ -38,7 +52,11 @@ function GetHistoryPractice() {
     });
 }
 
-function GetResultPractice(id) {
+function GetResultPractice(rowElement, id) {
+    // Toggle class selected-row cho dòng lịch sử
+    $('#tbody_history_result tr').removeClass('selected-row');
+    $(rowElement).addClass('selected-row');
+
     $.ajax({
         url: "/CourseExamPractice/GetResultPractice",
         type: "GET",
@@ -48,15 +66,25 @@ function GetResultPractice(id) {
         success: function (response) {
             console.log(response)
             var html = '';
-            $.each(response, function (i, item) {
-                var dateStart = moment(item.createdDate).isValid() ? moment(item.createdDate).format("DD/MM/YYYY HH:mm") : '';
-                html += `<tr class="text-wrap">
-                            <th class="text-center">${item.stt}</th>
-                            <th>${item.questionText}</th>
-                            <th class="text-center">${item.point}</th>
-                            <th>${item.note}</th>
+            if (response && response.length > 0) {
+                $.each(response, function (i, item) {
+                    html += `<tr>
+                                <td class="text-center fw-bold">${item.stt}</td>
+                                <td class="text-justify">${item.questionText}</td>
+                                <td class="text-center fw-bold text-primary">${item.point}</td>
+                                <td>${item.note || ''}</td>
+                            </tr>`;
+                });
+                // Hiện bảng kết quả, ẩn empty state
+                $('#detail_empty_state').hide();
+                $('#detail_table_container').show();
+            } else {
+                html = `<tr>
+                            <td colspan="4" class="text-center text-muted py-4">Không có dữ liệu kết quả chi tiết</td>
                         </tr>`;
-            })
+                $('#detail_empty_state').hide();
+                $('#detail_table_container').show();
+            }
             $('#tbody_practice_result').html(html);
         },
         error: function (error) {
@@ -74,16 +102,26 @@ function GetQuestion() {
         data: { courseExamId: courseExamId },
         success: function (response) {
             var html = '';
-
-            var data =
-                $.each(response, function (i, item) {
-                    listIdQuestion.push(item.id);
-                    html += `<tr>
-                    <td class="p-1 text-center align-middle">${item.stt}</td>
-                    <td class="p-1 "><a href="/CourseExamResult/QuestionDetails?questionId=${item.id}&courseId=${courseId}" target="_blank" class="link-color">${item.questionText}</a></td>
-                </tr>`;
-                })
-            $('#tbody_exam_result').html(html);
+            listIdQuestion = [];
+            $.each(response, function (i, item) {
+                listIdQuestion.push(item.id);
+                html += `
+                <div class="col">
+                    <div class="question-practice-card card shadow-sm h-100">
+                        <div class="card-body p-3">
+                            <span class="badge bg-primary mb-2">Câu hỏi ${item.stt}</span>
+                            <p class="text-dark fw-semibold mb-3 text-justify text-line-clamp-3" title="${item.questionText}">${item.questionText}</p>
+                        </div>
+                        <div class="question-card-footer text-end">
+                            <a href="/CourseExamResult/QuestionDetails?questionId=${item.id}&courseId=${courseId}" 
+                               target="_blank" class="btn btn-outline-primary btn-sm px-3 rounded-pill fw-bold">
+                                <i class='bx bx-play-circle me-1'></i> Thực hành ngay
+                            </a>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            $('#practice_question_grid').html(html);
         },
         error: function (error) {
             alert(error.responseText);
@@ -93,45 +131,8 @@ function GetQuestion() {
 
 
 function DoExam() {
-    let obj = {
-        Id: 0,
-        CourseExamId: parseInt(courseExamId),
-        Note: ""
-    };
-    //$.ajax({
-    //    url: "/CourseExamPractice/CreatePracticeResult",
-    //    type: "POST",
-    //    dataType: 'json',
-    //    contentType: 'application/json',
-    //    data: JSON.stringify(obj),
-    //    success: function (result) {
-    //        var dateCreate = moment(result.createdDate).isValid() ? moment(result.createdDate).format("DD/MM/YYYY HH:mm") : '';
-    //        $("#time-exam").text(dateCreate);
-    //        resultExamId = result.id;
-    //        $("#modal_exam_practice_test").modal('show');
-    //    },
-    //    error: function (error) {
-    //        alert(error.responseText);
-    //    }
-    //});
-
-
-    //$.ajax({
-    //    url: "/CourseExamPractice/CreatePracticeResult",
-    //    type: "POST",
-    //    dataType: 'json',
-    //    contentType: 'application/json',
-    //    data: JSON.stringify(obj),
-    //    success: function (result) {
-    //        var dateCreate = moment(result.createdDate).isValid() ? moment(result.createdDate).format("DD/MM/YYYY HH:mm") : '';
-    //        $("#time-exam").text(dateCreate);
-    //        resultExamId = result.id;
+    $("#time-exam").html('');
     $("#modal_exam_practice_test").modal('show');
-    //    },
-    //    error: function (error) {
-    //        alert(error.responseText);
-    //    }
-    //});
 }
 
 function onSubmit() {
@@ -166,7 +167,11 @@ function onSave() {
         data: JSON.stringify(obj),
         success: function (result) {
             var dateCreate = moment(result.createdDate).isValid() ? moment(result.createdDate).format("DD/MM/YYYY HH:mm") : '';
-            $("#time-exam").text(dateCreate);
+            if (dateCreate !== '') {
+                $("#time-exam").html(`<i class="bx bx-calendar me-1"></i> Ngày bắt đầu: ${dateCreate}`);
+            } else {
+                $("#time-exam").html('');
+            }
             resultExamId = result.id;
             let objExamResult = {
                 Id: parseInt(resultExamId),
@@ -206,6 +211,7 @@ function onSave() {
                             contentType: 'application/json',
                             data: JSON.stringify(arrData),
                             success: function (result) {
+                                GetHistoryPractice();
                             },
                             error: function (error) {
                                 alert(error.responseText);
